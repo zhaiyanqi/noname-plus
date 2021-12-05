@@ -20,13 +20,12 @@
 package com.widget.noname.cola;
 
 import android.os.Bundle;
+
 import org.apache.cordova.*;
 
-public class MainActivity extends CordovaActivity
-{
+public class MainActivity extends CordovaActivity {
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // enable Cordova apps to be started in the background
