@@ -1,0 +1,39 @@
+{
+  "name": "android-versions",
+  "version": "1.7.0",
+  "description": "Get the name, API level, version level, NDK level, or version code from any version of Android.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape tests/**/*.js",
+    "jshint": "jshint ."
+  },
+  "dependencies": {
+    "semver": "^5.7.1"
+  },
+  "devDependencies": {
+    "jshint": "^2.10.2",
+    "tape": "^4.11.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dvoiss/android-versions"
+  },
+  "bugs": {
+    "url": "https://github.com/dvoiss/android-versions/issues"
+  },
+  "keywords": [
+    "android",
+    "version",
+    "versions",
+    "ndk",
+    "nougat",
+    "marshmallow",
+    "api",
+    "level"
+  ],
+  "pre-commit": [
+    "jshint"
+  ],
+  "author": "dvoiss",
+  "license": "MIT"
+}

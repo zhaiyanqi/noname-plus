@@ -1,0 +1,32 @@
+{
+  "name": "properties-parser",
+  "version": "0.3.1",
+  "description": "A parser for .properties files written in javascript",
+  "keywords": [
+    "parser",
+    ".properties",
+    "properties",
+    "java",
+    "file parser",
+    "actionscript"
+  ],
+  "maintainers": [
+    {
+      "name": "Xavi",
+      "email": "xavi.rmz@gmail.com",
+      "web": "http://xavi.co"
+    }
+  ],
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xavi-/node-properties-parser"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.3.1"
+  },
+  "dependencies": {
+    "string.prototype.codepointat": "^0.2.0"
+  }
+}
