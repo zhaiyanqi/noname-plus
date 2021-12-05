@@ -22,8 +22,14 @@
             script.src='javabridge.js';
             document.head.appendChild(script);
             console.log("javaReady: " + script);
+        },
+        test: function() {
+            console.log("hello, ");
+            console.log("path: " + window.localStorage.getItem('noname_inited'));
+
         }
     };
 
     app.initialize();
+    window.app = app;
 }());

@@ -60,7 +60,7 @@ public class BridgeHelper {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                javaBridge.callJs("fromAndroidCall('cola')");
+//                javaBridge.callJs("fromAndroidCall('cola')");
             }
         });
     }

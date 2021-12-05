@@ -47,8 +47,13 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:label="@string/activity_name"
             android:launchMode="singleTop"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/ActivityTheme"
             android:windowSoftInputMode="adjustResize" />
+
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.2" />
     </application>
 
 </manifest>

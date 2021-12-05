@@ -65,6 +65,10 @@ public class LaunchActivity extends AppCompatActivity {
     }
 
     public void testJavaBridge(View view) {
-        bridgeHelper.callJs("fromAndroidCall('cola')");
+        bridgeHelper.callJs("window.app.test();");
+    }
+
+    public void startGame(View view) {
+        startActivity(new Intent(this, MainActivity.class));
     }
 }
