@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 
 import com.widget.noname.cola.bridge.BridgeHelper;
+import com.widget.noname.cola.listener.ExtractAdapter;
+import com.widget.noname.cola.util.FileUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,7 +39,23 @@ public class LaunchActivity extends AppCompatActivity {
 
     private void unZipUri(Uri uri) {
         mThreadPool.execute(() -> {
+            FileUtil.extractAll(this, uri, "default", new ExtractAdapter() {
 
+                @Override
+                public void onExtractProgress(float progress) {
+
+                }
+
+                @Override
+                public void onExtractDone() {
+
+                }
+
+                @Override
+                public void onExtractSaved(String path) {
+                    Log.e("zyq", "saved: " + path);
+                }
+            });
         });
     }
 

@@ -21,7 +21,8 @@ public class PathUtil {
 
     public static String getImportAssetTempPath(Context context, String folder) {
         if (null != context) {
-            return context.getExternalCacheDir().getPath() + PATH_TEMP_FOLDER_NAME;
+            return context.getExternalCacheDir().getPath() + ((null == folder)
+                    ? PATH_TEMP_FOLDER_NAME : folder);
         }
 
         return PATH_EMPTY;
