@@ -2,4 +2,5 @@
 <resources>
     <color name="wave_view_wave_color">#3F77AD</color>
     <color name="wave_view_border_color">#4A4A4A</color>
+    <color name="loading_view_background_color">#33000000</color>
 </resources>

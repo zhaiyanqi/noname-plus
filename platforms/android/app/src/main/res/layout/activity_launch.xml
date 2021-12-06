@@ -25,13 +25,13 @@
             android:onClick="testJavaBridge"
             android:text="测试" />
 
-        <com.widget.noname.cola.WaveLoadingView
-            android:id="@+id/waveLoadingView"
-            android:layout_width="65dp"
-            android:layout_height="65dp"
-            android:visibility="gone"/>
-
     </LinearLayout>
+
+    <com.widget.noname.cola.WaveLoadingView
+        android:id="@+id/wave_loading_view"
+        android:layout_width="@dimen/wave_view_size"
+        android:layout_height="@dimen/wave_view_size"
+        android:visibility="gone"/>
 
     <WebView
         android:id="@+id/web_view"

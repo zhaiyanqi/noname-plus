@@ -68,7 +68,11 @@ public class FileUtil {
 
                 boolean delete = file.delete();
                 Log.v(TAG, "temp file: " + file + ", delete: " + delete);
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
+                if (null != listener) {
+                    listener.onExtractError();
+                }
+
                 e.printStackTrace();
             } finally {
                 safeClose(zipFile);
