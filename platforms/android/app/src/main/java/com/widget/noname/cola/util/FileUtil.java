@@ -24,18 +24,19 @@ public class FileUtil {
         Log.e("TAG", "extractAll, context: " + context + ", uri: " + uri + ", dest: " + dest);
 
         if (null != context) {
-            String destPath =  context.getExternalFilesDir(null).getPath() + "/" + dest;
+            String destPath = context.getExternalFilesDir(null).getPath() + "/" + dest;
             String tempPath = PathUtil.getImportAssetTempPath(context, null);
             String tempName = "temp.zip";
             ZipFile zipFile = null;
 
             try {
-                copyUriToFile(context, uri, tempPath, tempName);
+                copyUriToFile(context, uri, tempPath, tempName, listener);
                 File file = new File(tempPath + tempName);
                 File destFile = new File(destPath);
 
                 if (!destFile.exists() || !destFile.isDirectory()) {
-                    destFile.mkdirs();
+                    boolean mkdirs = destFile.mkdirs();
+                    Log.v(TAG, "extractAll, destFile: " + destFile + ", mkdirs: " + mkdirs);
                 }
 
                 zipFile = new ZipFile(file);
@@ -45,7 +46,7 @@ public class FileUtil {
 
                 while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
                     if (null != listener) {
-                        listener.onExtractProgress(progressMonitor.getPercentDone());
+                        listener.onExtractProgress(50 + (progressMonitor.getPercentDone() / 2));
                     }
 
                     Thread.sleep(100);
@@ -65,7 +66,8 @@ public class FileUtil {
                     }
                 }
 
-                file.delete();
+                boolean delete = file.delete();
+                Log.v(TAG, "temp file: " + file + ", delete: " + delete);
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             } finally {
@@ -79,7 +81,8 @@ public class FileUtil {
         }
     }
 
-    public static void copyUriToFile(Context context, Uri uri, String destPath, String destName) throws IOException {
+    public static void copyUriToFile(Context context, Uri uri, String destPath, String destName,
+                                     ExtractListener listener) throws IOException {
 
         String outFileName = destPath + destName;
         File dir = new File(destPath);
@@ -101,7 +104,7 @@ public class FileUtil {
 
         byte[] buffer = new byte[1024];
         int length;
-        int copyLength = 0;
+        float copyLength = 0;
         long lastTime = SystemClock.uptimeMillis();
         long curTIme = 0;
 
@@ -112,7 +115,10 @@ public class FileUtil {
 
             if (curTIme - lastTime > 200) {
                 lastTime = curTIme;
-                Log.v(TAG, "copyUriToFile, progress: " + (copyLength / available) * 100);
+
+                if (null != listener) {
+                    listener.onExtractProgress((int) ((copyLength / available) * 50));
+                }
             }
         }
 
@@ -124,7 +130,9 @@ public class FileUtil {
         if (null != closeables) {
             for (Closeable cl : closeables) {
                 try {
-                    cl.close();
+                    if(null != cl) {
+                        cl.close();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

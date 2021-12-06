@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,6 +24,12 @@
             android:layout_height="wrap_content"
             android:onClick="testJavaBridge"
             android:text="测试" />
+
+        <com.widget.noname.cola.WaveLoadingView
+            android:id="@+id/waveLoadingView"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

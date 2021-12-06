@@ -2,7 +2,7 @@ package com.widget.noname.cola.listener;
 
 public class ExtractAdapter implements ExtractListener{
     @Override
-    public void onExtractProgress(float progress) {
+    public void onExtractProgress(int progress) {
 
     }
 

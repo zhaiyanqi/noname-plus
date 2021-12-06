@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wave_view_wave_color">#3F77AD</color>
+    <color name="wave_view_border_color">#4A4A4A</color>
+</resources>

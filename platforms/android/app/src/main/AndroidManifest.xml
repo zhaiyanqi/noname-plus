@@ -25,6 +25,7 @@
         <activity
             android:name=".LaunchActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat"
             tools:ignore="LockedOrientationActivity">
