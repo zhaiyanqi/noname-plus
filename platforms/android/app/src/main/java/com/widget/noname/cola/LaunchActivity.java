@@ -47,7 +47,7 @@ public class LaunchActivity extends AppCompatActivity {
         Resources resources = getResources();
         waveLoadingView = findViewById(R.id.waveLoadingView);
         waveLoadingView.setShapeType(WaveLoadingView.ShapeType.CIRCLE);
-        waveLoadingView.setProgressValue(0);
+        waveLoadingView.setWaterLevelRatio(0);
         waveLoadingView.setBorderWidth(resources.getDimensionPixelSize(R.dimen.wave_border_width));
         waveLoadingView.setAmplitudeRatio(10);
         waveLoadingView.setWaveColor(resources.getColor(R.color.wave_view_wave_color));
@@ -63,6 +63,7 @@ public class LaunchActivity extends AppCompatActivity {
 
         waveLoadingView.setVisibility(View.VISIBLE);
         waveLoadingView.startAnimation();
+        waveLoadingView.setProgressValue(0);
 
         mThreadPool.execute(() -> {
             FileUtil.extractAll(this, uri, "default", new ExtractAdapter() {

@@ -428,7 +428,7 @@ public class WaveLoadingView extends View {
         if (getShapeType() == 3) {
             setMeasuredDimension(width, height);
         } else {
-            int imageSize = (width < height) ? width : height;
+            int imageSize = Math.min(width, height);
             setMeasuredDimension(imageSize, imageSize);
         }
 
