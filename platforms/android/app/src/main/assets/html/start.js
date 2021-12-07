@@ -63,19 +63,6 @@
             var key = "extension_" + extname + "_enable";
             this.putDB(key, enable);
         },
-        test: function () {
-            console.log("hello, ");
-            console.log("path: " + window.localStorage.getItem('noname_inited'));
-            console.log(window.config);
-
-            console.log(window.localStorage.getItem(lib.configprefix + 'nodb'));
-
-            this.putDB('extension_键杀_enable', false);
-
-            this.getDB("extensions", function (value) {
-                console.log("extensions: " + value);
-            });
-        },
         getDB: function (key, callback) {
             if (!lib.db) {
                 console.log("getDB, lib.db: " + lib + ", key: " + key);
