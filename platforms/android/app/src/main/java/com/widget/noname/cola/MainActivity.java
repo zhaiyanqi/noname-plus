@@ -42,7 +42,7 @@ public class MainActivity extends CordovaActivity {
         if (null == appView) {
             init();
             WebView view = (WebView) appView.getView();
-            JsBridgeInterface jsBridgeInterface = new JsBridgeInterface(this);
+            JsBridgeInterface jsBridgeInterface = new JsBridgeInterface(this, null);
             view.addJavascriptInterface(jsBridgeInterface, jsBridgeInterface.getCallTag());
         }
 

@@ -7,13 +7,17 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class BridgeHelper {
+    private static final String JS_PREFIX = "javascript:";
+    private static final String JS_GET_EXTENSIONS = "javascript:app.getExtensions();";
 
     private final WebView webView;
     private JavaBridgeInterface javaBridge;
     private JsBridgeInterface jsBridge;
+    private final OnJsBridgeCallback jsBridgeCallback;
 
-    public BridgeHelper(WebView webView) {
+    public BridgeHelper(WebView webView, OnJsBridgeCallback callback) {
         this.webView = webView;
+        jsBridgeCallback = callback;
 
         init();
     }
@@ -51,7 +55,7 @@ public class BridgeHelper {
         settings.setGeolocationEnabled(true);
         settings.setAppCachePath(databasePath);
         settings.setAppCacheEnabled(true);
-        jsBridge = new JsBridgeInterface(webView.getContext());
+        jsBridge = new JsBridgeInterface(webView.getContext(), jsBridgeCallback);
         webView.addJavascriptInterface(jsBridge, jsBridge.getCallTag());
 
         webView.loadUrl(JsBridgeInterface.ROOT_URI);
@@ -59,13 +63,20 @@ public class BridgeHelper {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-
-//                javaBridge.callJs("fromAndroidCall('cola')");
             }
         });
     }
 
-    public void callJs(String fun) {
-        javaBridge.callJs(fun);
+    public void getExtensions() {
+        if (null != webView) {
+            webView.post(()-> javaBridge.callJs(JS_GET_EXTENSIONS));
+        }
+    }
+
+    public void enableExtension(String extName, boolean enable) {
+        if (null != webView) {
+            webView.post(()-> javaBridge.callFun("enableExtension",
+                    "'" + extName + "'", enable));
+        }
     }
 }

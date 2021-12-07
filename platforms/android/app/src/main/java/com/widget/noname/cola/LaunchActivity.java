@@ -1,6 +1,5 @@
 package com.widget.noname.cola;
 
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -10,21 +9,20 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.widget.noname.cola.bridge.BridgeHelper;
+import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.util.FileUtil;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class LaunchActivity extends AppCompatActivity {
+public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback {
 
     private BridgeHelper bridgeHelper = null;
     private ExecutorService mThreadPool = null;
@@ -135,14 +133,33 @@ public class LaunchActivity extends AppCompatActivity {
 
     private void initWebView() {
         WebView webView = findViewById(R.id.web_view);
-        bridgeHelper = new BridgeHelper(webView);
+        bridgeHelper = new BridgeHelper(webView, this);
     }
 
     public void testJavaBridge(View view) {
-        showSingleChoiceDialog(null);
+        if (null != bridgeHelper) {
+            bridgeHelper.getExtensions();
+        }
     }
 
     public void startGame(View view) {
         startActivity(new Intent(this, MainActivity.class));
+    }
+
+    @Override
+    public void onExtensionGet(String[] extensions) {
+        Log.v("zyq", Arrays.toString(extensions));
+        if (null != bridgeHelper) {
+            for (String ext : extensions) {
+                bridgeHelper.enableExtension(ext, false);
+            }
+        }
+    }
+
+    @Override
+    public void onPageStarted() {
+        if (null != bridgeHelper) {
+            bridgeHelper.getExtensions();
+        }
     }
 }
