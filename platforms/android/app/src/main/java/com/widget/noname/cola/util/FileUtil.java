@@ -24,8 +24,8 @@ public class FileUtil {
         Log.e("TAG", "extractAll, context: " + context + ", uri: " + uri + ", dest: " + dest);
 
         if (null != context) {
-            String destPath = context.getExternalFilesDir(null).getPath() + "/" + dest;
-            String tempPath = PathUtil.getImportAssetTempPath(context, null);
+            String destPath = JavaPathUtil.getAppRootFilesPath(context);
+            String tempPath = JavaPathUtil.getAppRootCachePath(context) + File.separator;
             String tempName = "temp.zip";
             ZipFile zipFile = null;
 

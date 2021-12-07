@@ -3,7 +3,7 @@ package com.widget.noname.cola.bridge;
 import android.content.Context;
 import android.webkit.JavascriptInterface;
 
-import com.widget.noname.cola.util.PathUtil;
+import com.widget.noname.cola.util.JsPathUtil;
 
 public class JsBridgeInterface {
     public static final String ROOT_URI = "file:///android_asset/html/start.html";
@@ -17,7 +17,7 @@ public class JsBridgeInterface {
 
     @JavascriptInterface
     public String getAssetPath() {
-        return PathUtil.getExternalAssetPath(context, "default");
+        return JsPathUtil.getGameRootPath(context);
     }
 
     public String getCallTag() {
