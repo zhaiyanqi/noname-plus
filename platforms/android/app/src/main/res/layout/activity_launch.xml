@@ -9,15 +9,34 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/wave_view_size"
         android:orientation="vertical"
         tools:ignore="HardcodedText">
 
         <Button
-            android:onClick="startGame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:onClick="startGame"
             android:text="开始游戏" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onVersionControlClick"
+            android:text="版本管理" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onExtControlClick"
+            android:text="扩展管理" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onAboutClick"
+            android:text="关于" />
 
         <Button
             android:layout_width="wrap_content"
@@ -31,7 +50,7 @@
         android:id="@+id/wave_loading_view"
         android:layout_width="@dimen/wave_view_size"
         android:layout_height="@dimen/wave_view_size"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <WebView
         android:id="@+id/web_view"

@@ -48,6 +48,30 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        if (hasFocus) {
+            hideSystemUI();
+        }
+    }
+
+    private void hideSystemUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+    }
+
     private void initWaveView() {
         Resources resources = getResources();
         waveLoadingView = findViewById(R.id.wave_loading_view);
@@ -142,18 +166,38 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
     }
 
+    public void onVersionControlClick(View view) {
+
+    }
+
+    public void onExtControlClick(View view) {
+
+    }
+
+    public void onAboutClick(View view) {
+
+    }
+
     public void startGame(View view) {
         startActivity(new Intent(this, MainActivity.class));
     }
 
     @Override
     public void onExtensionGet(String[] extensions) {
-        Log.v("zyq", Arrays.toString(extensions));
-        if (null != bridgeHelper) {
-            for (String ext : extensions) {
-                bridgeHelper.enableExtension(ext, false);
+        if (null != extensions) {
+            if (null != bridgeHelper) {
+                for (String ext : extensions) {
+                    bridgeHelper.getExtensionState(ext);
+                }
             }
+        } else {
+            Log.e("zzz", "未获取到扩展信息");
         }
+    }
+
+    @Override
+    public void onExtensionStateGet(String ext, boolean state) {
+        Log.e("zzz: ", "ext: " + ext + ", state: " + state);
     }
 
     @Override

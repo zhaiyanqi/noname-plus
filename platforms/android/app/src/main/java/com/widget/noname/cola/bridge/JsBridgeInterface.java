@@ -37,6 +37,15 @@ public class JsBridgeInterface {
             if (null != jsBridgeCallback) {
                 jsBridgeCallback.onExtensionGet(extensions);
             }
+        } else {
+            jsBridgeCallback.onExtensionGet(null);
+        }
+    }
+
+    @JavascriptInterface
+    public void onExtensionStateGet(String ext, boolean state) {
+        if (null != jsBridgeCallback) {
+            jsBridgeCallback.onExtensionStateGet(ext, state);
         }
     }
 

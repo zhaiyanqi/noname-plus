@@ -73,6 +73,13 @@ public class BridgeHelper {
         }
     }
 
+    public void getExtensionState(String extName) {
+        if (null != webView) {
+            webView.post(()-> javaBridge.callFun("getExtensionState",
+                    "'" + extName + "'"));
+        }
+    }
+
     public void enableExtension(String extName, boolean enable) {
         if (null != webView) {
             webView.post(()-> javaBridge.callFun("enableExtension",

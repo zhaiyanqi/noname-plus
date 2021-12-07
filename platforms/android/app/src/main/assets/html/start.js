@@ -15,13 +15,6 @@
         jsReady: function () {
             console.log("start: " + window.localStorage);
             console.log("jsBrige: " + window.jsBridge.getAssetPath());
-
-            var request = window.indexedDB.open('noname_0.9_A_CRa_data', 4);
-
-            request.onsuccess = function (e) {
-                var db = e.target.result;
-                console.log("success: " + db);
-            }
         },
         javaReady: function () {
             var script = document.createElement('script');
@@ -59,10 +52,6 @@
             console.log('onJsInited');
             window.jsBridge.onPageStarted();
         },
-        enableExtension: function (extname, enable) {
-            var key = "extension_" + extname + "_enable";
-            this.putDB(key, enable);
-        },
         getDB: function (key, callback) {
             if (!lib.db) {
                 console.log("getDB, lib.db: " + lib + ", key: " + key);
@@ -88,9 +77,24 @@
         },
         getExtensions: function () {
             this.getDB("extensions", function (value) {
-                console.log("extensions: " + (typeof value));
-                window.jsBridge.onGetExtensions(value.toString());
+                console.log("getExtensions, extensions: " + value);
+
+                if (value) {
+                    window.jsBridge.onGetExtensions(value.toString());
+                } else {
+                    window.jsBridge.onGetExtensions(null);
+                }
             });
+        },
+        getExtensionState: function(extname) {
+            var key = "extension_" + extname + "_enable";
+            this.getDB(key, function(value) {
+                window.jsBridge.onExtensionStateGet(extname, value);
+            })
+        },
+        enableExtension: function (extname, enable) {
+            var key = "extension_" + extname + "_enable";
+            this.putDB(key, enable);
         }
         // game.saveConfig('extensions',lib.config.extensions);
         // game.saveConfig('extension_'+extname+'_enable',true);

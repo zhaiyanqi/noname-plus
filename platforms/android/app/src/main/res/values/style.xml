@@ -5,14 +5,7 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
-    <style name="LoadingDialogTheme" parent="android:style/Theme.Dialog">
-        <!--背景颜色及透明程度-->
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <!--是否有标题 -->
+    <style name="ActivityThemeLunch" parent="@style/Theme.AppCompat.NoActionBar">
         <item name="android:windowNoTitle">true</item>
-        <!--是否浮现在activity之上-->
-        <item name="android:windowIsFloating">true</item>
-        <!--是否模糊-->
-        <item name="android:backgroundDimEnabled">false</item>
     </style>
 </resources>
