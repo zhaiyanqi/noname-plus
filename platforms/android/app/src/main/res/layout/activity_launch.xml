@@ -6,51 +6,66 @@
     android:layout_height="match_parent"
     tools:context=".LaunchActivity">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <RadioGroup
+        android:id="@+id/button_layout"
+        android:layout_width="@dimen/lunch_layout_button_width"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/wave_view_size"
         android:orientation="vertical"
         tools:ignore="HardcodedText">
 
-        <Button
-            android:layout_width="wrap_content"
+        <RadioButton
+            style="@style/lunch_layout_button_style"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="startGame"
             android:text="开始游戏" />
 
-        <Button
-            android:layout_width="wrap_content"
+        <RadioButton
+            style="@style/lunch_layout_button_style"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="onVersionControlClick"
             android:text="版本管理" />
 
-        <Button
-            android:layout_width="wrap_content"
+        <RadioButton
+            style="@style/lunch_layout_button_style"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="onExtControlClick"
             android:text="扩展管理" />
 
-        <Button
-            android:layout_width="wrap_content"
+        <RadioButton
+            style="@style/lunch_layout_button_style"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="onAboutClick"
             android:text="关于" />
 
-        <Button
-            android:layout_width="wrap_content"
+        <RadioButton
+            style="@style/lunch_layout_button_style"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="testJavaBridge"
             android:text="测试" />
 
-    </LinearLayout>
+    </RadioGroup>
 
     <com.widget.noname.cola.WaveLoadingView
         android:id="@+id/wave_loading_view"
         android:layout_width="@dimen/wave_view_size"
         android:layout_height="@dimen/wave_view_size"
         android:visibility="gone" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/lunch_layout_view_pager_margin_start"
+        android:layout_toEndOf="@+id/button_layout"
+        android:background="#7C1818"
+        android:orientation="vertical" />
 
     <WebView
         android:id="@+id/web_view"

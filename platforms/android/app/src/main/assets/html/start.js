@@ -96,8 +96,6 @@
             var key = "extension_" + extname + "_enable";
             this.putDB(key, enable);
         }
-        // game.saveConfig('extensions',lib.config.extensions);
-        // game.saveConfig('extension_'+extname+'_enable',true);
     };
 
     app.initialize();

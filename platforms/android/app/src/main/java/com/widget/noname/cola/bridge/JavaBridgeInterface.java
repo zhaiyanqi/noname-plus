@@ -1,11 +1,10 @@
 package com.widget.noname.cola.bridge;
 
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebView;
 
-import java.util.Arrays;
+import androidx.annotation.NonNull;
 
 public class JavaBridgeInterface {
     private static final String JS_PREFIX = "javascript:";
