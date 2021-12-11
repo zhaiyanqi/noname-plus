@@ -6,8 +6,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -19,14 +17,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.listener.ExtractAdapter;
+import com.widget.noname.cola.net.NonameWebSocketServer;
+import com.widget.noname.cola.net.WebSocketProxy;
 import com.widget.noname.cola.util.FileUtil;
+import com.widget.noname.cola.util.NetUtil;
 
-import java.io.File;
-import java.util.Arrays;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback {
+    private static final String TAG = "LaunchActivity";
 
     private BridgeHelper bridgeHelper = null;
     private ExecutorService mThreadPool = null;
@@ -49,7 +51,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
 
         initWebView();
-
+        startLocalServer(8080);
     }
 
     @Override
@@ -179,23 +181,67 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     public void onAboutClick(View view) {
-        File externalStoragePublicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
 
-        boolean b = externalStoragePublicDirectory.canWrite();
-        Log.e("zyq", "b: " + b);
+    }
 
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+    private boolean serverStarted = false;
 
-        // Provide read access to files and sub-directories in the user-selected
-        // directory.
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    public void setServerStarted(boolean started) {
+        serverStarted = started;
+    }
 
-        // Optionally, specify a URI for the directory that should be opened in
-        // the system file picker when it loads.
-//        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
+    public boolean isServerStarted() {
+        return serverStarted;
+    }
 
-        startActivityForResult(intent, 111);
+    public void startLocalServer(int port) {
+        if (isServerStarted()) {
+            Toast.makeText(this, "服务器运行中，请勿重复创建", Toast.LENGTH_SHORT).show();
+
+            return;
+        }
+
+        setServerStarted(true);
+
+        mThreadPool.execute(() -> {
+            Log.v(TAG, "onAboutClick, start server.");
+            try {
+                server = new NonameWebSocketServer(port);
+                server.setReuseAddr(true);
+                String s = NetUtil.getIpaddr();
+                runOnUiThread(() -> {
+                    Toast.makeText(LaunchActivity.this, s, Toast.LENGTH_SHORT).show();
+                });
+
+                server.start();
+            } catch (UnknownHostException e) {
+                try {
+                    server.stop();
+                } catch (InterruptedException interruptedException) {
+                }
+
+                e.printStackTrace();
+                Log.v(TAG, "onAboutClick, start server error." + e.getLocalizedMessage());
+
+                runOnUiThread(() -> setServerStarted(false));
+            }
+        });
+    }
+
+    private NonameWebSocketServer server = null;
+
+    @Override
+    protected void onDestroy() {
+        if (null != server) {
+            try {
+                server.stop();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Log.e(TAG, "onDestroy, server.stop error. " + e.getLocalizedMessage());
+            }
+        }
+
+        super.onDestroy();
     }
 
     public void startGame(View view) {
