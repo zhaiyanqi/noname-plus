@@ -18,7 +18,6 @@ import org.json.JSONArray;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -73,17 +72,17 @@ public class NonameWebSocketServer extends WebSocketServer {
 
         if (conn instanceof WebSocketProxy) {
             WebSocketProxy ws = (WebSocketProxy) conn;
-            InetSocketAddress remoteSocketAddress = ws.getRemoteSocketAddress();
-
-            if (null != remoteSocketAddress) {
-                String hostAddress = remoteSocketAddress.getAddress().getHostAddress();
-                if (bannedIps.contains(hostAddress)) {
-                    ws.sendl("denied", "banned");
-                    setTimeout(ws::close, 500);
-
-                    return;
-                }
-            }
+//            InetSocketAddress remoteSocketAddress = ws.getRemoteSocketAddress();
+//
+//            if (null != remoteSocketAddress) {
+//                String hostAddress = remoteSocketAddress.getAddress().getHostAddress();
+//                if (bannedIps.contains(hostAddress)) {
+//                    ws.sendl("denied", "banned");
+//                    setTimeout(ws::close, 500);
+//
+//                    return;
+//                }
+//            }
 
             ws.keyCheck(timer);
             clients.add(ws);
@@ -100,7 +99,7 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        Log.v(TAG, "onMessage, conn: " + conn + ", message: " + message);
+        Log.v(TAG, "onMessage, message: " + message + ", conn: " + conn);
 
         if (conn instanceof WebSocketProxy && (null != message)) {
             WebSocketProxy ws = (WebSocketProxy) conn;
@@ -112,9 +111,9 @@ public class NonameWebSocketServer extends WebSocketServer {
             if (HEART_BEAT.equals(message)) {
                 ws.setHeartBeat(false);
             } else if (null != ws.getOwner()) {
-                ws.getOwner().sendl(MSG_PREFIX_ONMESSAGE, NetUtil.toJsonStr(ws.getWsid()), message);
+                ws.getOwner().sendl(MSG_PREFIX_ONMESSAGE, JSON.toJSONString(ws.getWsid()), JSON.toJSONString(message));
             } else {
-                String[] arr = null;
+                String[] arr;
 
                 try {
                     JSONArray jsonArray = new JSONArray(message);
@@ -137,16 +136,7 @@ public class NonameWebSocketServer extends WebSocketServer {
         }
     }
 
-    public synchronized void message(WebSocketProxy ws, String[] msg) {
-        Log.e(TAG, "message, this: " + ws.getNickName());
-
-        if (ws.getOwner() != null) {
-            Log.e(TAG, "message, this.owner: " + ws.getOwner().getNickName());
-        } else {
-            Log.e(TAG, "message, this.owner: " + null);
-        }
-
-
+    public void message(WebSocketProxy ws, String[] msg) {
         if ((null != msg) && (msg.length > 1) && SERVER.equals(msg[0])) {
             String type = msg[1];
 
@@ -219,9 +209,7 @@ public class NonameWebSocketServer extends WebSocketServer {
         Log.v(TAG, "onClose, conn:" + conn + ", code: " + code + ", reason: " + reason + ", remote: " + reason);
 
         if (conn instanceof WebSocketProxy) {
-            clients.remove(conn);
-            updateRooms();
-            updateClients();
+            closeMsg((WebSocketProxy) conn);
         }
     }
 
@@ -242,6 +230,7 @@ public class NonameWebSocketServer extends WebSocketServer {
 
         while (it.hasNext()) {
             Room room = it.next();
+
             if (room.owner == ws) {
                 for (WebSocketProxy client : clients) {
                     if (client.getRoom() == room && client != ws) {
@@ -255,10 +244,9 @@ public class NonameWebSocketServer extends WebSocketServer {
 
         if (clients.contains(ws)) {
             if (null != ws.getOwner()) {
-                ws.getOwner().sendl(MSG_PREFIX_ON_CLOSE, ws.getWsid());
+                ws.getOwner().sendl(MSG_PREFIX_ON_CLOSE, JSON.toJSONString(ws.getWsid()));
                 clients.remove(ws);
             }
-
         }
         if (null != ws.getRoom()) {
             updateRooms();
@@ -272,11 +260,9 @@ public class NonameWebSocketServer extends WebSocketServer {
 
         WebSocketProxy ws = clients.findById(id);
 
-        if ((null != ws) && ws.getOwner() == ws) {
+        if ((null != ws)) {
             try {
-                String s = NetUtil.toJsonStr(msg);
-                Log.v(TAG, "sendMsg, send to: " + s);
-                ws.send(NetUtil.toJsonStr(msg));
+                ws.send(msg);
             } catch (Exception e) {
                 ws.close();
             }
@@ -299,6 +285,7 @@ public class NonameWebSocketServer extends WebSocketServer {
 
         ws.setRoom(room);
         ws.setStatus(null);
+        ws.setOwner(null);
 
         if (null != room.owner) {
             if ((null == room.configObj)
@@ -306,7 +293,7 @@ public class NonameWebSocketServer extends WebSocketServer {
                 ws.sendl(MSG_PREFIX_ENTER_FAILED);
             } else {
                 ws.setOwner(room.owner);
-//                ws.getOwner().sendl(MSG_PREFIX_CONNECTION, NetUtil.toJsonStr(ws.getWsid()));
+                ws.getOwner().sendl(MSG_PREFIX_CONNECTION, NetUtil.toJsonStr(ws.getWsid()));
             }
 
             updateRooms();
@@ -317,25 +304,11 @@ public class NonameWebSocketServer extends WebSocketServer {
         Room room = ws.getRoom();
 
         if (null != room && room.owner == ws) {
-            if (room.servermode) {
-                room.servermode = false;
-                if (ws.onConfig()) {
-                    if (clients.contains(ws)) {
-
-                    }
-
-                    ws.setOnConfig(false);
-                }
-
-                ws.sendl(MSG_PREFIX_CONNECTION, ws.getWsid());
-            }
-
             room.config = config;
             room.configObj = JSON.parseObject(config, Config.class);
         }
 
         updateRooms();
-        updateClients();
     }
 
     private void createRoom(WebSocketProxy ws, String key, String nickname, String avatar) {
@@ -384,6 +357,15 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     private void updateClients() {
+        Iterator<WebSocketProxy> iterator = clients.iterator();
+        while (iterator.hasNext()) {
+            WebSocketProxy next = iterator.next();
+
+            if (next.isClosing() || next.isClosed()) {
+                iterator.remove();
+            }
+        }
+
         String clientList = clients.toString();
 
         Log.v(TAG, "updateClients, clientList: " + clientList);
@@ -396,11 +378,29 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     private void updateRooms() {
+        Iterator<Room> iterator = rooms.iterator();
+
+        while (iterator.hasNext()) {
+            Room next = iterator.next();
+
+            if (next.owner == null || next.owner.isClosed() || next.owner.isClosing()) {
+                iterator.remove();
+            } else {
+                next.num = 0;
+            }
+        }
+
+        for (WebSocketProxy client : clients) {
+            if (client.getRoom() != null) {
+                client.getRoom().num++;
+            }
+        }
+
         String roomList = rooms.toString();
         String clientList = clients.toUpdateRoomString();
 
         for (WebSocketProxy client : clients) {
-            if (!client.isInRoom()) {
+            if (null == client.getRoom()) {
                 client.sendl(MSG_PREFIX_UPDATE_ROOMS, roomList, clientList);
             }
         }

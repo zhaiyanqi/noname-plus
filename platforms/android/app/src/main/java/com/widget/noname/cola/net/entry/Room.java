@@ -7,7 +7,6 @@ import java.util.Arrays;
 public class Room {
     private static final String FIX_QUOT = "\"";
 
-
     public int num = 0;
     public boolean servermode = false;
 

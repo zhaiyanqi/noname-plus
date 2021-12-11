@@ -193,6 +193,7 @@ public class WebSocketProxy extends WebSocketImpl {
 
     public void setRoom(Room room) {
         this.room = room;
+        setInRoom(room != null);
     }
 
     public Room getRoom() {
