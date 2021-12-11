@@ -6,7 +6,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -18,17 +17,17 @@ import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.net.NonameWebSocketServer;
-import com.widget.noname.cola.net.WebSocketProxy;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.NetUtil;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback {
     private static final String TAG = "LaunchActivity";
+
+    private NonameWebSocketServer server = null;
 
     private BridgeHelper bridgeHelper = null;
     private ExecutorService mThreadPool = null;
@@ -51,7 +50,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
 
         initWebView();
-        startLocalServer(8080);
     }
 
     @Override
@@ -182,6 +180,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     public void onAboutClick(View view) {
 
+        startLocalServer(8080);
     }
 
     private boolean serverStarted = false;
@@ -204,7 +203,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         setServerStarted(true);
 
         mThreadPool.execute(() -> {
-            Log.v(TAG, "onAboutClick, start server.");
             try {
                 server = new NonameWebSocketServer(port);
                 server.setReuseAddr(true);
@@ -221,14 +219,11 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 }
 
                 e.printStackTrace();
-                Log.v(TAG, "onAboutClick, start server error." + e.getLocalizedMessage());
 
                 runOnUiThread(() -> setServerStarted(false));
             }
         });
     }
-
-    private NonameWebSocketServer server = null;
 
     @Override
     protected void onDestroy() {
@@ -237,7 +232,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 server.stop();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Log.e(TAG, "onDestroy, server.stop error. " + e.getLocalizedMessage());
             }
         }
 
@@ -256,14 +250,12 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                     bridgeHelper.getExtensionState(ext);
                 }
             }
-        } else {
-            Log.e("zzz", "未获取到扩展信息");
         }
     }
 
     @Override
     public void onExtensionStateGet(String ext, boolean state) {
-        Log.e("zzz: ", "ext: " + ext + ", state: " + state);
+
     }
 
     @Override

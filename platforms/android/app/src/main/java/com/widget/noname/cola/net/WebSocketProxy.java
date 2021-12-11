@@ -61,18 +61,14 @@ public class WebSocketProxy extends WebSocketImpl {
     public void sendl(String... args) {
         try {
             if (args == null) {
-                Log.e(TAG, "sendl, args: null, msg: []");
                 send("[]");
             } else {
                 String msg = Arrays.toString(args);
-                Log.e(TAG, "sendl, msg: " + msg);
                 send(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
             close();
-
-            Log.e(TAG, "sendl, send error: " + e.toString() + ", close: " + this);
         }
     }
 

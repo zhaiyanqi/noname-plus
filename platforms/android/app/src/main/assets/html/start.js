@@ -77,8 +77,6 @@
         },
         getExtensions: function () {
             this.getDB("extensions", function (value) {
-                console.log("getExtensions, extensions: " + value);
-
                 if (value) {
                     window.jsBridge.onGetExtensions(value.toString());
                 } else {

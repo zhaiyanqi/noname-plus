@@ -1,7 +1,6 @@
 package com.widget.noname.cola.net;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.widget.noname.cola.net.entry.ClientList;
@@ -25,7 +24,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class NonameWebSocketServer extends WebSocketServer {
-    private static final String TAG = "NonameWebSocketServer";
 
     private static final String MSG_PREFIX_UPDATE_CLIENTS = "\"updateclients\"";
     private static final String MSG_PREFIX_UPDATE_ROOMS = "\"updaterooms\"";
@@ -99,8 +97,6 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        Log.v(TAG, "onMessage, message: " + message + ", conn: " + conn);
-
         if (conn instanceof WebSocketProxy && (null != message)) {
             WebSocketProxy ws = (WebSocketProxy) conn;
 
@@ -186,7 +182,7 @@ public class NonameWebSocketServer extends WebSocketServer {
                     break;
                 }
                 case FUN_CLOSE: {
-                    closeMsg(ws);
+                    closeSocketSafely(ws);
                     break;
                 }
             }
@@ -206,18 +202,14 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        Log.v(TAG, "onClose, conn:" + conn + ", code: " + code + ", reason: " + reason + ", remote: " + reason);
-
         if (conn instanceof WebSocketProxy) {
-            closeMsg((WebSocketProxy) conn);
+            closeSocketSafely((WebSocketProxy) conn);
         }
     }
 
 
     @Override
     public void stop(int timeout) throws InterruptedException {
-        Log.v(TAG, "stop, timeout: " + timeout);
-
         if (null != timer) {
             timer.cancel();
         }
@@ -225,7 +217,7 @@ public class NonameWebSocketServer extends WebSocketServer {
         super.stop(timeout);
     }
 
-    private void closeMsg(WebSocketProxy ws) {
+    private void closeSocketSafely(WebSocketProxy ws) {
         Iterator<Room> it = rooms.iterator();
 
         while (it.hasNext()) {
@@ -256,9 +248,7 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     private void sendMsg(String id, String msg) {
-        Log.e(TAG, "sendMsg, id: " + id + ", msg: " + msg);
-
-        WebSocketProxy ws = clients.findById(id);
+      WebSocketProxy ws = clients.findById(id);
 
         if ((null != ws)) {
             try {
@@ -266,14 +256,10 @@ public class NonameWebSocketServer extends WebSocketServer {
             } catch (Exception e) {
                 ws.close();
             }
-        } else {
-            Log.v(TAG, "sendMsg, not send, conn: " + ws);
         }
     }
 
     private void enterRoom(WebSocketProxy ws, String key, String nickname, String avatar) {
-        Log.e(TAG, "enterRoom, ws: " + ws + ", key: " + key + ", nickname: " + nickname + ", avatar: " + avatar);
-
         ws.setNickName(NetUtil.checkNikeName(nickname));
         ws.setAvatar(avatar);
         Room room = rooms.findRoom(key);
@@ -313,8 +299,6 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     private void createRoom(WebSocketProxy ws, String key, String nickname, String avatar) {
         if (null == key || !key.equals(ws.getOnlineKey())) {
-            Log.e(TAG, "createRoom, key not match onlineKey");
-
             return;
         }
 
@@ -348,7 +332,6 @@ public class NonameWebSocketServer extends WebSocketServer {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e(TAG, "keyCheck error: " + e);
         }
 
         if (null != arr && arr.length > 0) {
@@ -367,8 +350,6 @@ public class NonameWebSocketServer extends WebSocketServer {
         }
 
         String clientList = clients.toString();
-
-        Log.v(TAG, "updateClients, clientList: " + clientList);
 
         for (WebSocketProxy ws : clients) {
             if (!ws.isInRoom()) {
@@ -408,11 +389,14 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        Log.v(TAG, "onError, conn:" + conn + ", ex: " + ex.getLocalizedMessage());
+        ex.printStackTrace();
+
+        if (conn instanceof WebSocketProxy) {
+            closeSocketSafely((WebSocketProxy) conn);
+        }
     }
 
     @Override
     public void onStart() {
-        Log.v(TAG, "onStart");
     }
 }
