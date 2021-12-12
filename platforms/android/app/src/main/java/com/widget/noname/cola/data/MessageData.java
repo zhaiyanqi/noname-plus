@@ -6,6 +6,7 @@ public class MessageData {
     public static final int TYPE_IP = 1;
 
     private int type = 0;
+    private String date = null;
     private String message = null;
 
     public MessageData(String msg) {
@@ -31,5 +32,13 @@ public class MessageData {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

@@ -93,4 +93,11 @@ public class BridgeHelper {
                     "'" + ip + "'"));
         }
     }
+
+    public void setServerIp(String ip, boolean directStart) {
+        if (null != webView) {
+            webView.post(() -> javaBridge.callFun("setServerIp",
+                    "'" + ip + "'", directStart));
+        }
+    }
 }

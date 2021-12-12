@@ -1,5 +1,8 @@
 package com.widget.noname.cola.fragment;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -8,18 +11,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.lxj.xpopup.XPopup;
 import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.adapter.MessageRecyclerAdapter;
 import com.widget.noname.cola.data.MessageData;
+import com.widget.noname.cola.data.MessageType;
 import com.widget.noname.cola.eventbus.MsgServerStatus;
+import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.listener.MessageAdapterListener;
 import com.widget.noname.cola.net.NonameWebSocketServer;
 import com.widget.noname.cola.util.NetUtil;
@@ -110,6 +118,7 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
                     }
 
                     addMessageToScreen("服务器启动成功, 可以尝试连接以下几个地址进入服务器：");
+                    addMessageToScreen("(下列ip可一点击复制、设置到游戏内或者设置并启动游戏)");
 
                     String[] ipaddr = NetUtil.getIpaddr();
 
@@ -186,43 +195,53 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onIpaddrMsgClick(View view, String ip) {
+        new XPopup.Builder(getContext())
+                .hasStatusBar(false)
+                .animationDuration(120)
+                .hasShadowBg(false)
+                .isViewMode(true)
+                .atView(view)
+                .asAttachList(new String[]{"复制", "设置为联机ip", "设置ip并开始游戏", "取消"}, null,
+                        (position, text) -> {
+                            if (position == 0) {
+                                setToClipboard(ip);
+                            } else if (1 == position) {
+                                handler.postDelayed(() -> {
+                                    MsgToActivity msg = new MsgToActivity();
+                                    msg.type = MessageType.SET_SERVER_IP;
+                                    msg.obj = ip;
+                                    EventBus.getDefault().post(msg);
+                                }, 300);
 
-//        final XPopup.Builder builder = new XPopup.Builder(getContext())
-//                .watchView(view.findViewById(R.id.btnShowAttachPoint));
-//        view.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                builder.asAttachList(new String[]{"置顶", "复制", "删除"}, null,
-//                        new OnSelectListener() {
-//                            @Override
-//                            public void onSelect(int position, String text) {
-//                                toast("click " + text);
-//                            }
-//                        })
-//                        .show();
-//                return false;
-//            }
-//        });
+                            } else if (2 == position) {
+                                MsgToActivity msg = new MsgToActivity();
+                                msg.type = MessageType.SET_SERVER_IP_AND_START;
+                                msg.obj = ip;
+                                EventBus.getDefault().post(msg);
+                            }
+                        })
+                .show();
+    }
 
+    private void setToClipboard(String string) {
+        MyApplication.getThreadPool().execute(() -> {
+            ClipboardManager cm = (ClipboardManager) MyApplication.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData mClipData = ClipData.newPlainText("Label", string);
+            cm.setPrimaryClip(mClipData);
 
-//        AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getContext()));
-//        builder.setMessage("是否要设置 " + ip + " 为联机地址?");
-//        builder.setTitle("提示");
-//        builder.setPositiveButton("确定", (dialog, which) -> {
-//            MsgToActivity msg = new MsgToActivity();
-//            msg.type = MessageType.SET_SERVER_IP;
-//            msg.obj = ip;
-//            EventBus.getDefault().post(msg);
-//        });
-//        builder.setNeutralButton("取消", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                dialog.dismiss();
-//            }
-//        });
-//
-//        final AlertDialog dialog = builder.create();
-//        dialog.show();
+            ClipData primaryClip = cm.getPrimaryClip();
+            int itemCount = primaryClip.getItemCount();
+            FragmentActivity activity = getActivity();
+
+            if ((itemCount > 0) && (null != activity)) {
+                ClipData.Item itemAt = primaryClip.getItemAt(itemCount - 1);
+                CharSequence text1 = itemAt.getText();
+
+                activity.runOnUiThread(() -> {
+                    Toast.makeText(MyApplication.getContext(), "已复制：" + text1, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -281,6 +300,7 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
                     String ip = String.valueOf(msg.obj);
                     MessageData data = new MessageData(ip, MessageData.TYPE_IP);
                     adapter.addMessage(data);
+                    messageRecyclerView.smoothScrollToPosition(adapter.getItemCount() - 1);
                     break;
                 }
 

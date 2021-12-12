@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -50,6 +51,8 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
+
+        hideSystemUI();
         initWaveView();
 
         Intent intent = getIntent();
@@ -101,18 +104,23 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-
-        if (hasFocus) {
-            hideSystemUI();
-        }
+        hideSystemUI();
     }
+
+    private boolean startGameWhenSetIp = false;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MsgToActivity msg) {
         switch (msg.type) {
             case MessageType.SET_SERVER_IP: {
                 Log.e("zyq", "set ip: " + msg.obj);
+                startGameWhenSetIp = false;
                 bridgeHelper.setServerIp((String) msg.obj);
+                break;
+            }
+            case MessageType.SET_SERVER_IP_AND_START: {
+                startGameWhenSetIp = true;
+                bridgeHelper.setServerIp((String) msg.obj, true);
                 break;
             }
         }
@@ -170,6 +178,8 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
     }
 
     private void initWaveView() {
@@ -284,6 +294,13 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     @Override
     public void onExtensionStateGet(String ext, boolean state) {
 
+    }
+
+    @Override
+    public void onServeIpSet() {
+        if (startGameWhenSetIp) {
+            startGame(null);
+        }
     }
 
     @Override

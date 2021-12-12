@@ -213,8 +213,6 @@ public class NonameWebSocketServer extends WebSocketServer {
         if (conn instanceof WebSocketClient) {
             closeSocketSafely((WebSocketClient) conn);
         }
-
-        updateServerStatus(SERVER_TYPE_CLOSE);
     }
 
 

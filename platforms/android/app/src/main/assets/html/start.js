@@ -65,7 +65,7 @@
                 };
             }
         },
-        putDB: function (key, value) {
+        putDB: function (key, value, onsucc) {
             if (!lib.db) {
                 console.log("putDB, lib.db: " + lib + ", key: " + key + ", value: " + value);
                 return;
@@ -73,6 +73,10 @@
             var put = lib.db.transaction(['config'], 'readwrite').objectStore('config').put(value, key);
             put.onsuccess = function () {
                 console.log("putDB, success, key: " + key + ", value: " + value);
+
+                if (onsucc) {
+                    onsucc();
+                }
             };
         },
         getExtensions: function () {
@@ -94,8 +98,16 @@
             var key = "extension_" + extname + "_enable";
             this.putDB(key, enable);
         },
-        setServerIp: function (ip) {
-            this.putDB("last_ip", ip);
+        setServerIp: function (ip, directStart) {
+            if (directStart) {
+                this.putDB('mode','connect', function() {
+                    app.setServerIp(ip, false);
+                });
+            } else {
+                this.putDB("last_ip", ip, function() {
+                    window.jsBridge.onServeIpSet();
+                });
+            }
         }
     };
 

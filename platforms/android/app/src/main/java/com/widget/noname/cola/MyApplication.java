@@ -1,6 +1,7 @@
 package com.widget.noname.cola;
 
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Typeface;
 
 import com.tencent.mmkv.MMKV;
@@ -12,11 +13,12 @@ public class MyApplication extends Application {
 
     private static Typeface typeface = null;
     private static ExecutorService threadPool = null;
+    private static Context context = null;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
+        context = this;
         MMKV.initialize(this);
 
         typeface = Typeface.createFromAsset(getAssets(), "font/xinwei.ttf");
@@ -29,5 +31,9 @@ public class MyApplication extends Application {
 
     public static ExecutorService getThreadPool() {
         return threadPool;
+    }
+
+    public static Context getContext() {
+        return context;
     }
 }

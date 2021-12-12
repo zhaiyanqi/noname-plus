@@ -20,5 +20,4 @@ ext.repos = {
     google()
     jcenter()
     maven { url "https://oss.jfrog.org/libs-snapshot" }
-    maven { url 'https://jitpack.io' }
 }

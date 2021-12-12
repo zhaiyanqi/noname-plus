@@ -1,14 +1,9 @@
 package com.widget.noname.cola.bridge;
 
 import android.content.Context;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.widget.noname.cola.util.JsPathUtil;
-
-import org.json.JSONObject;
-
-import java.util.Arrays;
 
 public class JsBridgeInterface {
     public static final String ROOT_URI = "file:///android_asset/html/start.html";
@@ -46,6 +41,13 @@ public class JsBridgeInterface {
     public void onExtensionStateGet(String ext, boolean state) {
         if (null != jsBridgeCallback) {
             jsBridgeCallback.onExtensionStateGet(ext, state);
+        }
+    }
+
+    @JavascriptInterface
+    public void onServeIpSet() {
+        if (null != jsBridgeCallback) {
+            jsBridgeCallback.onServeIpSet();
         }
     }
 

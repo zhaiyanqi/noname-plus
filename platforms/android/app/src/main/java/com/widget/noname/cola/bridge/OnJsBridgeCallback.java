@@ -6,5 +6,7 @@ public interface OnJsBridgeCallback {
 
     void onExtensionStateGet(String ext, boolean state);
 
+    void onServeIpSet();
+
     void onPageStarted();
 }
