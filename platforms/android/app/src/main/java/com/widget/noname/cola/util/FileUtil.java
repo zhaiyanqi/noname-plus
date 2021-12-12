@@ -19,6 +19,119 @@ import java.io.OutputStream;
 
 public class FileUtil {
     private static final String TAG = "FileUtil";
+    private static final int MOD_K = 1024;
+
+    public static float fileSizeToMb(long size) {
+
+        float result = size * 1f / MOD_K;
+        result = result / MOD_K;
+
+        return result;
+    }
+
+    public static long folderSize(File directory) {
+        long length = 0;
+
+        if ((null != directory) && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+
+            if (null != files) {
+                for (File file : files) {
+                    if (file.isFile())
+                        length += file.length();
+                    else
+                        length += folderSize(file);
+                }
+            }
+        } else if ((null != directory) && directory.isFile()) {
+            length = directory.length();
+        }
+
+        return length;
+    }
+
+    public static void extractUriToGame(Context context, Uri uri, File root, String folder,
+                                        ExtractListener listener) {
+        Log.e("zyq", "uri: " + uri);
+        Log.e("zyq", "root: " + root.getAbsolutePath());
+        Log.e("zyq", "folder: " + folder);
+
+        if (null != context) {
+            String destPath = root.getPath() + File.separator + folder;
+            String tempPath = JavaPathUtil.getAppRootCachePath(context) + File.separator;
+            String tempName = "temp.zip";
+            ZipFile zipFile = null;
+            File file = null;
+
+            try {
+                file = new File(tempPath + tempName);
+                File destFile = new File(destPath);
+
+                if (!destFile.exists() || !destFile.isDirectory()) {
+                    boolean mkdirs = destFile.mkdirs();
+                    Log.v(TAG, "extractAll, destFile: " + destFile + ", mkdirs: " + mkdirs);
+
+                    if (!mkdirs) {
+                        if (null != listener) {
+                            listener.onExtractError();
+
+                            return;
+                        }
+                    }
+                }
+
+                copyUriToFile(context, uri, tempPath, tempName, listener);
+
+                zipFile = new ZipFile(file);
+                zipFile.setRunInThread(true);
+                ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+                zipFile.extractAll(destPath);
+
+                while (!progressMonitor.getState().equals(ProgressMonitor.State.READY)) {
+                    if (null != listener) {
+                        listener.onExtractProgress(50 + (progressMonitor.getPercentDone() / 2));
+                    }
+
+                    Thread.sleep(100);
+                }
+
+                if (progressMonitor.getResult().equals(ProgressMonitor.Result.SUCCESS)) {
+                    if (null != listener) {
+                        listener.onExtractDone();
+                    }
+                } else if (progressMonitor.getResult().equals(ProgressMonitor.Result.ERROR)) {
+                    if (null != listener) {
+                        listener.onExtractError();
+                    }
+                } else if (progressMonitor.getResult().equals(ProgressMonitor.Result.CANCELLED)) {
+                    if (null != listener) {
+                        listener.onExtractCancel();
+                    }
+                }
+
+                boolean delete = file.delete();
+                Log.v(TAG, "extractUriToGame, file: " + file + ", delete: " + delete);
+            } catch (Exception e) {
+                if (null != listener) {
+                    listener.onExtractError();
+                }
+
+                if (null != file) {
+                    boolean delete = file.delete();
+                    Log.v(TAG, "extractUriToGame, failed, file: " + file + ", delete: " + delete);
+                }
+
+                e.printStackTrace();
+            } finally {
+                safeClose(zipFile);
+
+                if (null != listener) {
+                    Uri destUri = Uri.fromFile(new File(destPath));
+                    listener.onExtractSaved(destUri.toString() + "/");
+                }
+            }
+        }
+    }
 
     public static void extractAll(Context context, Uri uri, String dest, ExtractListener listener) {
         Log.e("TAG", "extractAll, context: " + context + ", uri: " + uri + ", dest: " + dest);

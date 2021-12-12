@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LaunchActivity">
+    tools:context=".LaunchActivity"
+    tools:ignore="HardcodedText">
 
     <ImageView
         android:id="@+id/image_background"
@@ -21,8 +22,8 @@
         android:drawableStart="@drawable/running_dot"
         android:drawablePadding="2dp"
         android:gravity="center"
-        android:textSize="14sp"
         android:text="本地服务器未运行"
+        android:textSize="14sp"
         tools:ignore="HardcodedText" />
 
     <RadioGroup
@@ -35,10 +36,10 @@
         tools:ignore="HardcodedText">
 
         <RadioButton
+            android:id="@+id/button_start_game"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="startGame"
             android:text="开始游戏" />
 
         <RadioButton
@@ -71,18 +72,13 @@
 
     </RadioGroup>
 
-    <com.widget.noname.cola.WaveLoadingView
-        android:id="@+id/wave_loading_view"
-        android:layout_width="@dimen/wave_view_size"
-        android:layout_height="@dimen/wave_view_size"
-        android:visibility="gone" />
-
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="35dp"
         android:layout_toEndOf="@+id/button_layout"
+        android:background="@drawable/fragment_view_background"
         android:orientation="vertical" />
 
     <WebView

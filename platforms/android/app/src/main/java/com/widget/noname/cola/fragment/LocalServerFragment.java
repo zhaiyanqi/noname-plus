@@ -245,11 +245,6 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Message msg) {
-
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onServerStatusChange(MsgServerStatus msg) {
         switch (msg.getStatus()) {
             case NonameWebSocketServer.SERVER_TYPE_START:

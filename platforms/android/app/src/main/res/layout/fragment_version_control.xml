@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:ignore="HardcodedText">
+    android:layout_height="match_parent">
+
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/message_recycler"
+        android:id="@+id/version_list_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="20dp"
-        android:fadingEdge="vertical"
-        android:orientation="vertical"
-        android:overScrollMode="never"
-        android:requiresFadingEdge="vertical" />
+        android:overScrollMode="never" />
+
+
+    <com.widget.noname.cola.WaveLoadingView
+        android:id="@+id/wave_loading_view"
+        android:layout_width="@dimen/wave_view_size"
+        android:layout_height="@dimen/wave_view_size"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/start_server_button"
+        android:id="@+id/import_game_button"
         style="@style/normal_shadow_style"
         android:layout_width="55dp"
         android:layout_height="55dp"
@@ -25,10 +32,9 @@
         android:layout_marginBottom="20dp"
         android:background="@drawable/button_start_server"
         android:elevation="3dp"
-        android:text="启"
+        android:text="@string/import_gamer_asset"
         android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

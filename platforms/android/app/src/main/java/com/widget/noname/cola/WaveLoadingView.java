@@ -3,7 +3,6 @@ package com.widget.noname.cola;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
@@ -15,7 +14,7 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.os.Build;
+import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
@@ -642,6 +641,10 @@ public class WaveLoadingView extends View {
 
     public void setCenterTitleSize(float centerTitleSize) {
         mCenterTitlePaint.setTextSize(sp2px(centerTitleSize));
+    }
+
+    public void setCenterTitleFont(Typeface typeface) {
+        mCenterTitlePaint.setTypeface(typeface);
     }
 
     public float getCenterTitleSize() {

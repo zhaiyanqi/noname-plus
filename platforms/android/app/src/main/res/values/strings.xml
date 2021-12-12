@@ -11,4 +11,5 @@
     <string name="btn_text_server_end">终</string>
     <string name="btn_text_server_start">启</string>
     <string name="server_start">服务器启动中</string>
+    <string name="import_gamer_asset">导</string>
 </resources>

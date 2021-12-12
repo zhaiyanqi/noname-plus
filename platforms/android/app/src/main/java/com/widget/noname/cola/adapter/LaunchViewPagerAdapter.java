@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import com.widget.noname.cola.fragment.EmptyFragment;
 import com.widget.noname.cola.fragment.ExtManageFragment;
 import com.widget.noname.cola.fragment.LocalServerFragment;
 import com.widget.noname.cola.fragment.VersionControlFragment;
@@ -34,8 +35,8 @@ public class LaunchViewPagerAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         Fragment fragment = null;
-
         String frag = fragmentList.get(position);
+
         switch (frag) {
             case FRAGMENT_VERSION_CONTROL: {
                 fragment = new VersionControlFragment();
@@ -50,9 +51,9 @@ public class LaunchViewPagerAdapter extends FragmentStateAdapter {
                 break;
             }
             default:
-                fragment = new VersionControlFragment();
+                fragment = new EmptyFragment();
+                break;
         }
-
 
         return fragment;
     }

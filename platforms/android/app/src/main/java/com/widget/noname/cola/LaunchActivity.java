@@ -2,16 +2,13 @@ package com.widget.noname.cola;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,26 +18,22 @@ import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.data.MessageType;
+import com.widget.noname.cola.eventbus.MsgExtraZipFile;
 import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.fragment.PagerHelper;
-import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.net.NonameWebSocketServer;
-import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.view.RedDotTextView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback, RadioGroup.OnCheckedChangeListener {
     private static final String TAG = "LaunchActivity";
 
     private BridgeHelper bridgeHelper = null;
-    private WaveLoadingView waveLoadingView = null;
+//    private WaveLoadingView waveLoadingView = null;
 
     private RadioGroup radioGroup = null;
     private ViewPager2 viewPager = null;
@@ -53,7 +46,9 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         setContentView(R.layout.activity_launch);
 
         hideSystemUI();
-        initWaveView();
+        initWebView();
+        initViewPager();
+        serverStatusView = findViewById(R.id.server_status_red_dot);
 
         Intent intent = getIntent();
 
@@ -61,38 +56,16 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             Uri data = intent.getData();
             showSingleChoiceDialog(data);
         }
-
-        initWebView();
-        initViewPager();
-        serverStatusView = findViewById(R.id.server_status_red_dot);
     }
-
-
-    private final List<Integer> mPageButtonList = new ArrayList<>();
 
     private void initViewPager() {
         radioGroup = findViewById(R.id.button_layout);
         radioGroup.setOnCheckedChangeListener(this);
 
         viewPager = findViewById(R.id.view_pager);
-        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
-
-                if (position < mPageButtonList.size()) {
-                    radioGroup.check(mPageButtonList.get(position));
-                }
-            }
-        });
         viewPager.setUserInputEnabled(false);
 
         pagerAdapter = new LaunchViewPagerAdapter(this);
-        mPageButtonList.add(R.id.button_version_control);
-        mPageButtonList.add(R.id.button_extension_manage);
-        mPageButtonList.add(R.id.button_local_server);
-        mPageButtonList.add(R.id.button_about);
-
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_VERSION_CONTROL);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_EXT_MANAGER);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_LOCAL_SERVER);
@@ -113,7 +86,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     public void onMessageEvent(MsgToActivity msg) {
         switch (msg.type) {
             case MessageType.SET_SERVER_IP: {
-                Log.e("zyq", "set ip: " + msg.obj);
                 startGameWhenSetIp = false;
                 bridgeHelper.setServerIp((String) msg.obj);
                 break;
@@ -182,86 +154,37 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     }
 
-    private void initWaveView() {
-        Resources resources = getResources();
-        waveLoadingView = findViewById(R.id.wave_loading_view);
-        waveLoadingView.setShapeType(WaveLoadingView.ShapeType.CIRCLE);
-        waveLoadingView.setWaterLevelRatio(0);
-        waveLoadingView.setBorderWidth(resources.getDimensionPixelSize(R.dimen.wave_border_width));
-        waveLoadingView.setAmplitudeRatio(10);
-        waveLoadingView.setWaveColor(resources.getColor(R.color.wave_view_wave_color));
-        waveLoadingView.setBorderColor(resources.getColor(R.color.wave_view_border_color));
-        waveLoadingView.setAnimDuration(3000);
-        waveLoadingView.setCenterTitleColor(Color.WHITE);
-    }
-
-    private void unZipUri(Uri uri) {
-        MyApplication.getThreadPool().execute(() -> {
-            FileUtil.extractAll(this, uri, "default", new ExtractAdapter() {
-
-                @Override
-                public void onExtractProgress(int progress) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(progress);
-                        waveLoadingView.setCenterTitle(String.valueOf(progress));
-                    });
-                }
-
-                @Override
-                public void onExtractDone() {
-
-                }
-
-                @Override
-                public void onExtractError() {
-                }
-
-                @Override
-                public void onExtractSaved(String path) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(100);
-                        waveLoadingView.setCenterTitle(String.valueOf(100));
-                        Toast.makeText(LaunchActivity.this, "导入完成：" + path, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            });
-        });
-    }
-
     private int yourChoice = 0;
 
     private void showSingleChoiceDialog(Uri data) {
-        final String[] items = {"我是1", "我是2", "我是3", "我是4"};
+        final String[] items = new String[]{"私有目录，不需要额外权限（清除数据文件会丢失）",
+                "SD卡Document目录（清除数据，游戏本体不丢失, 需要SD卡权限）",
+                "SD卡根目录（清除数据，游戏本体不丢失, 需要SD卡权限）"};
         yourChoice = -1;
         AlertDialog.Builder singleChoiceDialog =
-                new AlertDialog.Builder(this);
-        singleChoiceDialog.setTitle("我是一个单选Dialog");
-        // 第二个参数是默认选项，此处设置为0
-        singleChoiceDialog.setSingleChoiceItems(items, 0,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        yourChoice = which;
-                    }
-                });
+                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert);
+        singleChoiceDialog.setTitle("请选择解压路径");
+        singleChoiceDialog.setCancelable(false);
+        singleChoiceDialog.setSingleChoiceItems(items, 0, (dialog, which) -> yourChoice = which);
         singleChoiceDialog.setPositiveButton("确定",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-
-                        runOnUiThread(() -> {
-                            if (yourChoice != -1) {
-                                Toast.makeText(LaunchActivity.this, "任务执行中...", Toast.LENGTH_SHORT).show();
-                                waveLoadingView.setVisibility(View.VISIBLE);
-                                waveLoadingView.startAnimation();
-                                waveLoadingView.setProgressValue(0);
-
-                                unZipUri(data);
-                            }
-                        });
-                    }
+                (dialog, which) -> {
+                    dialog.dismiss();
+                    runOnUiThread(() -> {
+                        if (yourChoice != -1) {
+                            radioGroup.check(R.id.button_version_control);
+                            MsgExtraZipFile msg = new MsgExtraZipFile();
+                            msg.setUri(data);
+                            msg.setExtraType(yourChoice + 1);
+                            EventBus.getDefault().post(msg);
+                        }
+                    });
                 });
+        singleChoiceDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
         singleChoiceDialog.show();
     }
 
@@ -276,7 +199,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
     }
 
-    public void startGame(View view) {
+    public void startGame() {
         startActivity(new Intent(this, MainActivity.class));
     }
 
@@ -299,7 +222,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     @Override
     public void onServeIpSet() {
         if (startGameWhenSetIp) {
-            startGame(null);
+            startGame();
         }
     }
 
@@ -322,9 +245,11 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_LOCAL_SERVER);
         } else if (id == R.id.button_about) {
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_ABOUT);
+        } else if (id == R.id.button_start_game) {
+            startGame();
         }
 
-        if (pos > 0) {
+        if (pos >= 0) {
             viewPager.setCurrentItem(pos);
         }
     }
