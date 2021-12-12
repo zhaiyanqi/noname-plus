@@ -82,8 +82,15 @@ public class BridgeHelper {
 
     public void enableExtension(String extName, boolean enable) {
         if (null != webView) {
-            webView.post(()-> javaBridge.callFun("enableExtension",
+            webView.post(() -> javaBridge.callFun("enableExtension",
                     "'" + extName + "'", enable));
+        }
+    }
+
+    public void setServerIp(String ip) {
+        if (null != webView) {
+            webView.post(() -> javaBridge.callFun("setServerIp",
+                    "'" + ip + "'"));
         }
     }
 }

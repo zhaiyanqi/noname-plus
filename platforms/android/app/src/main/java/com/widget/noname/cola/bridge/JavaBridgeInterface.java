@@ -23,6 +23,7 @@ public class JavaBridgeInterface {
         if (TextUtils.isEmpty(funName)) {
             return;
         }
+
         String url = toParams(funName, param);
         Log.v("JavaBridgeInterface", "callFun: " + url);
         webView.loadUrl(url);

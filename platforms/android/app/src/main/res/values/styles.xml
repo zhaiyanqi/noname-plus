@@ -13,4 +13,11 @@
         <item name="android:shadowColor">#33000000</item>
         <item name="android:shadowRadius">8</item>
     </style>
+
+    <style name="normal_shadow_style">
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowRadius">8</item>
+    </style>
+
+
 </resources>

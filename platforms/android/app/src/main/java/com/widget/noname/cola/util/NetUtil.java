@@ -1,16 +1,11 @@
 package com.widget.noname.cola.util;
 
-import android.annotation.SuppressLint;
 import android.text.TextUtils;
 
-import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -42,10 +37,9 @@ public class NetUtil {
         return nickname;
     }
 
-    public static String getIpaddr() {
-        String hostIp = null;
-
+    public static String[] getIpaddr() {
         List<String> list = new ArrayList<>();
+
         try {
             Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
 
@@ -57,15 +51,25 @@ public class NetUtil {
 
                 while (ias.hasMoreElements()) {
                     ia = ias.nextElement();
+                    String hostAddress = ia.getHostAddress();
 
-                    hostIp = ia.getHostAddress();
-                    list.add(hostIp);
+                    if (hostAddress.startsWith("fe80") || hostAddress.startsWith("::")) {
+                        continue;
+                    }
+
+                    if (hostAddress.contains(":")) {
+                        list.add("[" + hostAddress + "]");
+                    } else {
+                        list.add(hostAddress);
+                    }
                 }
             }
         } catch (SocketException e) {
             e.printStackTrace();
         }
 
-        return Arrays.toString(list.toArray());
+        String[] result = new String[list.size()];
+
+        return list.toArray(result);
     }
 }

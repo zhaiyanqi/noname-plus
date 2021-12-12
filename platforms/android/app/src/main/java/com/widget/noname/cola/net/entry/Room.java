@@ -1,8 +1,6 @@
 package com.widget.noname.cola.net.entry;
 
-import com.widget.noname.cola.net.WebSocketProxy;
-
-import java.util.Arrays;
+import com.widget.noname.cola.net.WebSocketClient;
 
 public class Room {
     private static final String FIX_QUOT = "\"";
@@ -13,7 +11,7 @@ public class Room {
     public Config configObj = null;
     public String config = null;
     public String key;
-    public WebSocketProxy owner = null;
+    public WebSocketClient owner = null;
 
     @Override
     public String toString() {

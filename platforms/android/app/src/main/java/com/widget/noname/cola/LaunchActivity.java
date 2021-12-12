@@ -6,40 +6,50 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
+import com.widget.noname.cola.data.MessageType;
+import com.widget.noname.cola.eventbus.MsgServerStatus;
+import com.widget.noname.cola.eventbus.MsgToActivity;
+import com.widget.noname.cola.fragment.PagerHelper;
 import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.net.NonameWebSocketServer;
 import com.widget.noname.cola.util.FileUtil;
-import com.widget.noname.cola.util.NetUtil;
+import com.widget.noname.cola.view.RedDotTextView;
 
-import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback {
+import java.util.ArrayList;
+import java.util.List;
+
+public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback, RadioGroup.OnCheckedChangeListener {
     private static final String TAG = "LaunchActivity";
 
-    private NonameWebSocketServer server = null;
-
     private BridgeHelper bridgeHelper = null;
-    private ExecutorService mThreadPool = null;
     private WaveLoadingView waveLoadingView = null;
+
+    private RadioGroup radioGroup = null;
+    private ViewPager2 viewPager = null;
+    private LaunchViewPagerAdapter pagerAdapter = null;
+    private RedDotTextView serverStatusView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-
-        mThreadPool = Executors.newFixedThreadPool(3);
-
         initWaveView();
 
         Intent intent = getIntent();
@@ -50,6 +60,42 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
 
         initWebView();
+        initViewPager();
+        serverStatusView = findViewById(R.id.server_status_red_dot);
+    }
+
+
+    private final List<Integer> mPageButtonList = new ArrayList<>();
+
+    private void initViewPager() {
+        radioGroup = findViewById(R.id.button_layout);
+        radioGroup.setOnCheckedChangeListener(this);
+
+        viewPager = findViewById(R.id.view_pager);
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+
+                if (position < mPageButtonList.size()) {
+                    radioGroup.check(mPageButtonList.get(position));
+                }
+            }
+        });
+        viewPager.setUserInputEnabled(false);
+
+        pagerAdapter = new LaunchViewPagerAdapter(this);
+        mPageButtonList.add(R.id.button_version_control);
+        mPageButtonList.add(R.id.button_extension_manage);
+        mPageButtonList.add(R.id.button_local_server);
+        mPageButtonList.add(R.id.button_about);
+
+        pagerAdapter.addFragment(PagerHelper.FRAGMENT_VERSION_CONTROL);
+        pagerAdapter.addFragment(PagerHelper.FRAGMENT_EXT_MANAGER);
+        pagerAdapter.addFragment(PagerHelper.FRAGMENT_LOCAL_SERVER);
+        pagerAdapter.addFragment(PagerHelper.FRAGMENT_ABOUT);
+
+        viewPager.setAdapter(pagerAdapter);
     }
 
     @Override
@@ -59,6 +105,56 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         if (hasFocus) {
             hideSystemUI();
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MsgToActivity msg) {
+        switch (msg.type) {
+            case MessageType.SET_SERVER_IP: {
+                Log.e("zyq", "set ip: " + msg.obj);
+                bridgeHelper.setServerIp((String) msg.obj);
+                break;
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onServerStatusChange(MsgServerStatus msg) {
+        switch (msg.getStatus()) {
+            case NonameWebSocketServer.SERVER_TYPE_START: {
+                serverStatusView.setText(R.string.server_start);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
+                serverStatusView.setText(R.string.server_running);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_CLOSE: {
+                serverStatusView.setText(R.string.server_close);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_ERROR: {
+                serverStatusView.setText(R.string.server_error);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_STOP: {
+                serverStatusView.setText(R.string.server_stop);
+                break;
+            }
+        }
+        serverStatusView.setStatus(msg.getStatus());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 
     private void hideSystemUI() {
@@ -90,7 +186,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void unZipUri(Uri uri) {
-        mThreadPool.execute(() -> {
+        MyApplication.getThreadPool().execute(() -> {
             FileUtil.extractAll(this, uri, "default", new ExtractAdapter() {
 
                 @Override
@@ -170,74 +266,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
     }
 
-    public void onVersionControlClick(View view) {
-
-    }
-
-    public void onExtControlClick(View view) {
-
-    }
-
-    public void onAboutClick(View view) {
-
-        startLocalServer(8080);
-    }
-
-    private boolean serverStarted = false;
-
-    public void setServerStarted(boolean started) {
-        serverStarted = started;
-    }
-
-    public boolean isServerStarted() {
-        return serverStarted;
-    }
-
-    public void startLocalServer(int port) {
-        if (isServerStarted()) {
-            Toast.makeText(this, "服务器运行中，请勿重复创建", Toast.LENGTH_SHORT).show();
-
-            return;
-        }
-
-        setServerStarted(true);
-
-        mThreadPool.execute(() -> {
-            try {
-                server = new NonameWebSocketServer(port);
-                server.setReuseAddr(true);
-                String s = NetUtil.getIpaddr();
-                runOnUiThread(() -> {
-                    Toast.makeText(LaunchActivity.this, s, Toast.LENGTH_SHORT).show();
-                });
-
-                server.start();
-            } catch (UnknownHostException e) {
-                try {
-                    server.stop();
-                } catch (InterruptedException interruptedException) {
-                }
-
-                e.printStackTrace();
-
-                runOnUiThread(() -> setServerStarted(false));
-            }
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (null != server) {
-            try {
-                server.stop();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        super.onDestroy();
-    }
-
     public void startGame(View view) {
         startActivity(new Intent(this, MainActivity.class));
     }
@@ -262,6 +290,25 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     public void onPageStarted() {
         if (null != bridgeHelper) {
             bridgeHelper.getExtensions();
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup group, int id) {
+        int pos = -1;
+
+        if (id == R.id.button_version_control) {
+            pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_VERSION_CONTROL);
+        } else if (id == R.id.button_extension_manage) {
+            pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_EXT_MANAGER);
+        } else if (id == R.id.button_local_server) {
+            pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_LOCAL_SERVER);
+        } else if (id == R.id.button_about) {
+            pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_ABOUT);
+        }
+
+        if (pos > 0) {
+            viewPager.setCurrentItem(pos);
         }
     }
 }

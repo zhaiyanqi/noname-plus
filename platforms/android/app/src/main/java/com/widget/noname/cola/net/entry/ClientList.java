@@ -4,11 +4,11 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.widget.noname.cola.net.WebSocketProxy;
+import com.widget.noname.cola.net.WebSocketClient;
 
 import java.util.ArrayList;
 
-public class ClientList extends ArrayList<WebSocketProxy> {
+public class ClientList extends ArrayList<WebSocketClient> {
 
     @NonNull
     @Override
@@ -54,12 +54,12 @@ public class ClientList extends ArrayList<WebSocketProxy> {
         }
     }
 
-    public WebSocketProxy findById(String id) {
+    public WebSocketClient findById(String id) {
         if (TextUtils.isEmpty(id)) {
             return null;
         }
 
-        for (WebSocketProxy ws : this) {
+        for (WebSocketClient ws : this) {
             if (id.equals(ws.getWsid())) {
                 return ws;
             }

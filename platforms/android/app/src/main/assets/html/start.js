@@ -93,6 +93,9 @@
         enableExtension: function (extname, enable) {
             var key = "extension_" + extname + "_enable";
             this.putDB(key, enable);
+        },
+        setServerIp: function (ip) {
+            this.putDB("last_ip", ip);
         }
     };
 

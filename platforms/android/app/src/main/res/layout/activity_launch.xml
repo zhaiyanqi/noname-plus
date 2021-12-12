@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LaunchActivity">
+
+    <ImageView
+        android:id="@+id/image_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/launch_layout_bg" />
+
+    <com.widget.noname.cola.view.RedDotTextView
+        android:id="@+id/server_status_red_dot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="35dp"
+        android:drawableStart="@drawable/running_dot"
+        android:drawablePadding="2dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:text="本地服务器未运行"
+        tools:ignore="HardcodedText" />
 
     <RadioGroup
         android:id="@+id/button_layout"
@@ -23,32 +42,32 @@
             android:text="开始游戏" />
 
         <RadioButton
+            android:id="@+id/button_version_control"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="onVersionControlClick"
             android:text="版本管理" />
 
         <RadioButton
+            android:id="@+id/button_extension_manage"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="onExtControlClick"
             android:text="扩展管理" />
 
         <RadioButton
+            android:id="@+id/button_local_server"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="onAboutClick"
-            android:text="关于" />
+            android:text="联机服务器" />
 
         <RadioButton
+            android:id="@+id/button_about"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="testJavaBridge"
-            android:text="测试" />
+            android:text="关于" />
 
     </RadioGroup>
 
@@ -62,9 +81,8 @@
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="@dimen/lunch_layout_view_pager_margin_start"
+        android:layout_margin="35dp"
         android:layout_toEndOf="@+id/button_layout"
-        android:background="#7C1818"
         android:orientation="vertical" />
 
     <WebView

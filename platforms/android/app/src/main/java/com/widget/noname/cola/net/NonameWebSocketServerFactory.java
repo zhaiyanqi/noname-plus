@@ -1,7 +1,6 @@
 package com.widget.noname.cola.net;
 
 import org.java_websocket.WebSocketAdapter;
-import org.java_websocket.WebSocketImpl;
 import org.java_websocket.WebSocketServerFactory;
 import org.java_websocket.drafts.Draft;
 
@@ -13,13 +12,13 @@ import java.util.List;
 
 public class NonameWebSocketServerFactory implements WebSocketServerFactory {
     @Override
-    public WebSocketProxy createWebSocket(WebSocketAdapter a, Draft d) {
-        return new WebSocketProxy(a, d);
+    public WebSocketClient createWebSocket(WebSocketAdapter a, Draft d) {
+        return new WebSocketClient(a, d);
     }
 
     @Override
-    public WebSocketProxy createWebSocket(WebSocketAdapter a, List<Draft> drafts) {
-        return new WebSocketProxy(a, drafts);
+    public WebSocketClient createWebSocket(WebSocketAdapter a, List<Draft> drafts) {
+        return new WebSocketClient(a, drafts);
     }
 
     @Override

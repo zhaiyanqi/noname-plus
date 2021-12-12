@@ -1,7 +1,5 @@
 package com.widget.noname.cola.net;
 
-import android.util.Log;
-
 import com.widget.noname.cola.net.entry.Room;
 import com.widget.noname.cola.util.NetUtil;
 
@@ -14,7 +12,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class WebSocketProxy extends WebSocketImpl {
+public class WebSocketClient extends WebSocketImpl {
     private static final String TAG = "WebSocketProxy";
 
 
@@ -28,17 +26,15 @@ public class WebSocketProxy extends WebSocketImpl {
 
     private boolean inRoom = false;
     private boolean heartBeat = false;
-    private boolean onConfig = false;
-
     private Room room = null;
-    private WebSocketProxy owner = null;
+    private WebSocketClient owner = null;
 
-    public WebSocketProxy(WebSocketListener listener, List<Draft> drafts) {
+    public WebSocketClient(WebSocketListener listener, List<Draft> drafts) {
         super(listener, drafts);
         setWsid(NetUtil.getId());
     }
 
-    public WebSocketProxy(WebSocketListener listener, Draft draft) {
+    public WebSocketClient(WebSocketListener listener, Draft draft) {
         super(listener, draft);
         setWsid(NetUtil.getId());
     }
@@ -158,11 +154,11 @@ public class WebSocketProxy extends WebSocketImpl {
         heartBeat = beat;
     }
 
-    public WebSocketProxy getOwner() {
+    public WebSocketClient getOwner() {
         return owner;
     }
 
-    public void setOwner(WebSocketProxy owner) {
+    public void setOwner(WebSocketClient owner) {
         this.owner = owner;
     }
 
@@ -214,13 +210,5 @@ public class WebSocketProxy extends WebSocketImpl {
                 NetUtil.toJsonStr(getStatus()) + "," +
                 NetUtil.toJsonStr(getWsid()) + "," +
                 NetUtil.toJsonStr(getOnlineKey()) + "]";
-    }
-
-    public boolean onConfig() {
-        return onConfig;
-    }
-
-    public void setOnConfig(boolean onConfig) {
-        this.onConfig = onConfig;
     }
 }
