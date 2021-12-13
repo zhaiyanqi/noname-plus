@@ -154,13 +154,13 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     }
 
-    private int yourChoice = 0;
+    private int yourChoice = -1;
 
     private void showSingleChoiceDialog(Uri data) {
         final String[] items = new String[]{"私有目录，不需要额外权限（清除数据文件会丢失）",
                 "SD卡Document目录（清除数据，游戏本体不丢失, 需要SD卡权限）",
                 "SD卡根目录（清除数据，游戏本体不丢失, 需要SD卡权限）"};
-        yourChoice = -1;
+        yourChoice = 0;
         AlertDialog.Builder singleChoiceDialog =
                 new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert);
         singleChoiceDialog.setTitle("请选择解压路径");

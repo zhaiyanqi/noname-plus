@@ -16,12 +16,6 @@
             console.log("start: " + window.localStorage);
             console.log("jsBrige: " + window.jsBridge.getAssetPath());
         },
-        javaReady: function () {
-            var script = document.createElement('script');
-            script.src = 'javabridge.js';
-            document.head.appendChild(script);
-            console.log("javaReady: " + script);
-        },
         openDB: function () {
             var request = window.indexedDB.open(lib.configprefix + 'data', 4);
             request.onupgradeneeded = function (e) {

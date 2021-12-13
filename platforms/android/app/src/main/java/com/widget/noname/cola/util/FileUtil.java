@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.listener.ExtractListener;
 
 import net.lingala.zip4j.ZipFile;
@@ -12,10 +13,12 @@ import net.lingala.zip4j.progress.ProgressMonitor;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 
 public class FileUtil {
     private static final String TAG = "FileUtil";
@@ -52,13 +55,10 @@ public class FileUtil {
 
     public static void extractUriToGame(Context context, Uri uri, File root, String folder,
                                         ExtractListener listener) {
-        Log.e("zyq", "uri: " + uri);
-        Log.e("zyq", "root: " + root.getAbsolutePath());
-        Log.e("zyq", "folder: " + folder);
 
         if (null != context) {
             String destPath = root.getPath() + File.separator + folder;
-            String tempPath = JavaPathUtil.getAppRootCachePath(context) + File.separator;
+            String tempPath = root.getPath() + File.separator;
             String tempName = "temp.zip";
             ZipFile zipFile = null;
             File file = null;
@@ -110,6 +110,12 @@ public class FileUtil {
                 }
 
                 boolean delete = file.delete();
+
+                String finalDestPath = root.getPath() + File.separator + folder;
+
+                File tempFolder = new File(destPath);
+                tempFolder.renameTo(new File(finalDestPath));
+
                 Log.v(TAG, "extractUriToGame, file: " + file + ", delete: " + delete);
             } catch (Exception e) {
                 if (null != listener) {
@@ -247,11 +253,87 @@ public class FileUtil {
         if (null != closeables) {
             for (Closeable cl : closeables) {
                 try {
-                    if(null != cl) {
+                    if (null != cl) {
                         cl.close();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void backupWebContentToPath(Context context, String curPath, String toPath) {
+
+        if (null != context) {
+            MyApplication.getThreadPool().execute(() -> {
+                File root = context.getFilesDir().getParentFile();
+
+                if (root != null) {
+                    String webView = root.getPath() + "/app_webview/";
+                    String cache = root.getPath() + "/cache/";
+                    String backupWebView = curPath + "/backup/app_webview/";
+                    String backupCache = curPath + "/backup/cache/";
+
+                    // 1.backup web
+                    copy(webView, backupWebView);
+                    // 2.backup cache
+                    copy(cache, backupCache);
+
+
+                    // 3.restore
+                    File toPathBackupFile = new File(toPath + "/backup");
+
+                    if (toPathBackupFile.exists() && toPathBackupFile.isDirectory()) {
+
+                        String toPathBackupWebView = toPath + "/backup/app_webview/";
+                        String toPathBackupCache = toPath + "/backup/cache/";
+
+                        // 4.restore web
+                        File webFile = new File(webView);
+                        File cacheFile = new File(cache);
+                        webFile.delete();
+                        cacheFile.delete();
+
+                        // 5.copy
+                        copy(toPathBackupWebView, webView);
+                        copy(toPathBackupCache, cache);
+                    }
+                }
+            });
+        }
+    }
+
+    public static void copyFileUsingFileChannels(String source, String dest) {
+        try (FileChannel inputChannel = new FileInputStream(source).getChannel();
+             FileChannel outputChannel = new FileOutputStream(dest).getChannel()) {
+            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void copy(String fromFile, String toFile) {
+        File[] currentFiles;
+        File root = new File(fromFile);
+
+        if (!root.exists()) {
+            return;
+        }
+
+        currentFiles = root.listFiles();
+
+        File targetDir = new File(toFile);
+        if (!targetDir.exists()) {
+            targetDir.mkdirs();
+        }
+
+        if (null != currentFiles) {
+            for (File currentFile : currentFiles) {
+                if (currentFile.isDirectory()) {
+                    copy(currentFile.getPath() + "/", toFile + currentFile.getName() + "/");
+                } else {
+                    copyFileUsingFileChannels(currentFile.getPath(), toFile + currentFile.getName());
                 }
             }
         }

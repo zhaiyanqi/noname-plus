@@ -7,11 +7,11 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -59,6 +59,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     private WaveLoadingView waveLoadingView = null;
     private RecyclerView versionListView = null;
     private VersionListRecyclerAdapter adapter = null;
+    private TextView loadingText = null;
 
     @Nullable
     @Override
@@ -74,6 +75,9 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         startButton.setTypeface(MyApplication.getTypeface());
         startButton.setOnClickListener(this);
 
+        loadingText = view.findViewById(R.id.loading_text);
+        loadingText.setTypeface(MyApplication.getTypeface());
+
         versionListView = view.findViewById(R.id.version_list_recycler);
         adapter = new VersionListRecyclerAdapter();
 
@@ -82,6 +86,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         versionListView.setAdapter(adapter);
 
         initWaveView(view);
+        updateVersionList();
     }
 
     private void initWaveView(View view) {
@@ -101,8 +106,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     private void findAllGameFileInRootView(boolean includeSd) {
         MyApplication.getThreadPool().execute(() -> {
             File root = JavaPathUtil.getAppRoot(getContext());
-
-
             List<File> list = new ArrayList<>(findGameInPath(root));
 
             if (includeSd) {
@@ -116,6 +119,14 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                     }
 
                     list.addAll(findGameInPath(noname));
+                }
+
+                String yuriPath = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/Android/data/yuri.nakamura.noname_android/";
+
+                File yuri = new File(yuriPath);
+
+                if (yuri.exists() && yuri.isDirectory()) {
+                    list.addAll(findGameInPath(yuri));
                 }
             }
 
@@ -144,6 +155,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
 
             versionListView.post(() -> {
                 adapter.replaceList(verList);
+                loadingText.setVisibility(View.GONE);
             });
         });
     }
@@ -220,9 +232,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                                         root.mkdirs();
                                     }
 
-                                    File file = new File(root.getAbsolutePath() + "/111");
-                                    boolean mkdir = file.mkdir();
-                                    Log.e("zyq", "mkdir: " + mkdir);
                                     String folder = dateFormat.format(new Date());
                                     unZipUri(msg.getUri(), root, folder);
                                 } else {
@@ -268,9 +277,8 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                     runOnUiThread(() -> {
                         waveLoadingView.setProgressValue(100);
                         waveLoadingView.setCenterTitle(String.valueOf(100));
+                        runOnUiThread(() -> updateVersionList());
                     });
-
-                    Log.e("zyq", "path: " + path);
                 }
             });
         });
@@ -289,19 +297,21 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         EventBus.getDefault().unregister(this);
     }
 
+    private void updateVersionList() {
+        PermissionX.init(this)
+                .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .request(new RequestCallback() {
+                    @Override
+                    public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
+                        findAllGameFileInRootView(allGranted);
+                    }
+                });
+    }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.import_game_button) {
-            PermissionX.init(this)
-                    .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .request(new RequestCallback() {
-                        @Override
-                        public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
-                            findAllGameFileInRootView(allGranted);
-                        }
-                    });
-
+            updateVersionList();
         }
     }
 }

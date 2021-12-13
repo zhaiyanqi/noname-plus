@@ -9,8 +9,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.lxj.xpopup.XPopup;
+import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.VersionData;
+import com.widget.noname.cola.util.FileConstant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +40,49 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         holder.sizeTextView.setText(data.getSize());
         holder.pathTextView.setText(data.getPath());
         holder.dateTextView.setText(data.getDate());
+        holder.itemView.setSelected(data.isSelected());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onItemClick(v, data);
+            }
+        });
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void onItemClick(View view, VersionData data) {
+        new XPopup.Builder(view.getContext())
+                .hasStatusBar(false)
+                .animationDuration(120)
+                .hasShadowBg(false)
+                .isViewMode(true)
+                .atView(view)
+                .asAttachList(new String[]{"设置为游戏主体", "取消"}, null,
+                        (position, text) -> {
+                            if (position == 0) {
+//                                Log.e("zyq", "save, path: " + data.getPath());
+//                                String curPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+//
+//                                if (null != curPath) {
+//                                    FileUtil.backupWebContentToPath(view.getContext(), curPath, data.getPath());
+//                                }
+
+                                MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
+
+
+                                unSelectAll();
+                                data.setSelected(true);
+                                notifyDataSetChanged();
+                            }
+                        })
+                .show();
+    }
+
+    private void unSelectAll() {
+        for (VersionData data : list) {
+            data.setSelected(false);
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

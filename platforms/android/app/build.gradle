@@ -363,7 +363,7 @@ dependencies {
     // viewpager2
     implementation "androidx.viewpager2:viewpager2:1.0.0"
 
-     implementation 'com.guolindev.permissionx:permissionx:1.6.1'
+    implementation 'com.guolindev.permissionx:permissionx:1.6.1'
 
     implementation 'org.java-websocket:Java-WebSocket:1.5.2'
     implementation 'com.alibaba:fastjson:1.1.72.android'
