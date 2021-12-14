@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Process;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.interfaces.OnConfirmListener;
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
 import com.widget.noname.cola.MyApplication;
@@ -28,7 +32,7 @@ import com.widget.noname.cola.R;
 import com.widget.noname.cola.WaveLoadingView;
 import com.widget.noname.cola.adapter.VersionListRecyclerAdapter;
 import com.widget.noname.cola.data.VersionData;
-import com.widget.noname.cola.eventbus.MsgExtraZipFile;
+import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
@@ -121,7 +125,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                     list.addAll(findGameInPath(noname));
                 }
 
-                String yuriPath = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/Android/data/yuri.nakamura.noname_android/";
+                String yuriPath = "/sdcard/Android/data/yuri.nakamura.noname_android";
 
                 File yuri = new File(yuriPath);
 
@@ -132,7 +136,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
 
             List<VersionData> verList = new ArrayList<>();
 
-
             for (int i = 0; i < list.size(); i++) {
                 File file = list.get(i);
                 VersionData data = new VersionData();
@@ -140,16 +143,16 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                 data.setName(file.getName());
                 data.setPath(file.getPath());
 
-                long length = FileUtil.folderSize(file);
-                float size = FileUtil.fileSizeToMb(length);
-
-                String suffix = " MB";
-                if (size >= MOD_K) {
-                    size = size / MOD_K;
-                    suffix = " GB";
-                }
-
-                data.setSize(decimalFormat.format(size) + suffix);
+//                long length = FileUtil.folderSize(file);
+//                float size = FileUtil.fileSizeToMb(length);
+//
+//                String suffix = " MB";
+//                if (size >= MOD_K) {
+//                    size = size / MOD_K;
+//                    suffix = " GB";
+//                }
+//
+//                data.setSize(decimalFormat.format(size) + suffix);
                 verList.add(data);
             }
 
@@ -209,16 +212,16 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onExtraZipFile(MsgExtraZipFile msg) {
+    public void onExtraZipFile(MsgVersionControl msg) {
 
-        switch (msg.getExtraType()) {
-            case MsgExtraZipFile.EXTRA_TYPE_INTERNAL: {
+        switch (msg.getMsgType()) {
+            case MsgVersionControl.MSG_TYPE_EXTRA_INTERNAL: {
                 File root = JavaPathUtil.getAppRootFiles(getContext());
                 String folder = dateFormat.format(new Date());
                 unZipUri(msg.getUri(), root, folder);
                 break;
             }
-            case MsgExtraZipFile.EXTRA_TYPE_EXTERNAL_DOCUMENT: {
+            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL_DOCUMENT: {
                 PermissionX.init(this)
                         .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         .request(new RequestCallback() {
@@ -241,8 +244,28 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                         });
                 break;
             }
-            case MsgExtraZipFile.EXTRA_TYPE_EXTERNAL: {
+            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL: {
 
+                break;
+            }
+            case MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH: {
+                new XPopup.Builder(getContext())
+                        .asConfirm("提示", "需要重启才能生效", new OnConfirmListener() {
+                            @Override
+                            public void onConfirm() {
+                                FragmentActivity activity = getActivity();
+                                if (activity != null) {
+                                    activity.finish();
+                                }
+
+                                new Handler().postDelayed(() -> {
+                                    try {
+                                        Process.killProcess(Process.myPid());
+                                    } catch (Exception ignored) {
+                                    }
+                                }, 200);
+                            }
+                        }).show();
                 break;
             }
         }

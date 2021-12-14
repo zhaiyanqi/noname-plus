@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,9 +20,9 @@ import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.data.MessageType;
-import com.widget.noname.cola.eventbus.MsgExtraZipFile;
 import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
+import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
 import com.widget.noname.cola.net.NonameWebSocketServer;
 import com.widget.noname.cola.view.RedDotTextView;
@@ -39,12 +41,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private ViewPager2 viewPager = null;
     private LaunchViewPagerAdapter pagerAdapter = null;
     private RedDotTextView serverStatusView = null;
+    private WebView webView = null;
+    private RelativeLayout rootView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-
+        rootView = findViewById(R.id.root_view);
         hideSystemUI();
         initWebView();
         initViewPager();
@@ -72,6 +76,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_ABOUT);
 
         viewPager.setAdapter(pagerAdapter);
+        radioGroup.check(R.id.button_version_control);
     }
 
     @Override
@@ -93,6 +98,15 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             case MessageType.SET_SERVER_IP_AND_START: {
                 startGameWhenSetIp = true;
                 bridgeHelper.setServerIp((String) msg.obj, true);
+                break;
+            }
+
+            case MessageType.RESTART_WEB_VIEW: {
+                webView.removeAllViews();
+                webView.destroy();
+
+                initWebView();
+                Toast.makeText(this, "版本切换完成", Toast.LENGTH_SHORT).show();
                 break;
             }
         }
@@ -172,9 +186,9 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                     runOnUiThread(() -> {
                         if (yourChoice != -1) {
                             radioGroup.check(R.id.button_version_control);
-                            MsgExtraZipFile msg = new MsgExtraZipFile();
+                            MsgVersionControl msg = new MsgVersionControl();
                             msg.setUri(data);
-                            msg.setExtraType(yourChoice + 1);
+                            msg.setMsgType(yourChoice + 1);
                             EventBus.getDefault().post(msg);
                         }
                     });
@@ -201,6 +215,12 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     public void startGame() {
         startActivity(new Intent(this, MainActivity.class));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        radioGroup.clearCheck();
     }
 
     @Override

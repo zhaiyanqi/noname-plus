@@ -6,10 +6,13 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.widget.noname.cola.MyApplication;
+import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.listener.ExtractListener;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.progress.ProgressMonitor;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.Closeable;
 import java.io.File;
@@ -263,42 +266,56 @@ public class FileUtil {
         }
     }
 
+    private static final String DO_NOT_DEL_PATH = "files";
+    private static final String CACHE_CODE_PATH = "code_cache";
+
     public static void backupWebContentToPath(Context context, String curPath, String toPath) {
 
         if (null != context) {
             MyApplication.getThreadPool().execute(() -> {
-                File root = context.getFilesDir().getParentFile();
-
-                if (root != null) {
-                    String webView = root.getPath() + "/app_webview/";
-                    String cache = root.getPath() + "/cache/";
-                    String backupWebView = curPath + "/backup/app_webview/";
-                    String backupCache = curPath + "/backup/cache/";
-
-                    // 1.backup web
-                    copy(webView, backupWebView);
-                    // 2.backup cache
-                    copy(cache, backupCache);
+                try {
 
 
-                    // 3.restore
-                    File toPathBackupFile = new File(toPath + "/backup");
+                    File root = context.getFilesDir().getParentFile();
 
-                    if (toPathBackupFile.exists() && toPathBackupFile.isDirectory()) {
+                    if (root != null) {
+                        String[] files = new String[]{
+                                "app_database",
+                                "app_textures",
+                                "app_webview",
+                                "cache",
+                                "shared_prefs"
+                        };
 
-                        String toPathBackupWebView = toPath + "/backup/app_webview/";
-                        String toPathBackupCache = toPath + "/backup/cache/";
+                        String rootPath = root.getPath() + File.separator;
+                        String backPath = curPath + "/backup/";
+                        String restorePath = toPath + "/backup/";
 
-                        // 4.restore web
-                        File webFile = new File(webView);
-                        File cacheFile = new File(cache);
-                        webFile.delete();
-                        cacheFile.delete();
+                        // 1.backup
+                        for (String file : files) {
+                            copy(rootPath + file + File.separator,
+                                    backPath + file + File.separator);
+                        }
 
-                        // 5.copy
-                        copy(toPathBackupWebView, webView);
-                        copy(toPathBackupCache, cache);
+                        // 2.restore
+                        File restoreFile = new File(restorePath);
+
+                        if (restoreFile.exists() && restoreFile.isDirectory()) {
+                            for (String file : files) {
+                                String from = restorePath + file + File.separator;
+                                String to = rootPath + file + File.separator;
+                                File del = new File(to);
+                                del.delete();
+                                copy(from, to);
+                            }
+                        }
+
+                        MsgVersionControl msg = new MsgVersionControl();
+                        msg.setMsgType(MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH);
+                        EventBus.getDefault().post(msg);
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
         }
