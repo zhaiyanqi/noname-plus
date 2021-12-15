@@ -27,58 +27,68 @@
         android:textSize="14sp"
         tools:ignore="HardcodedText" />
 
-    <RadioGroup
-        android:id="@+id/button_layout"
-        android:layout_width="@dimen/lunch_layout_button_width"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:id="@+id/button_root_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/wave_view_size"
         android:orientation="vertical"
-        tools:ignore="HardcodedText">
+        android:gravity="center">
 
-        <RadioButton
+        <Button
             android:id="@+id/button_start_game"
             style="@style/lunch_layout_button_style"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="开始游戏" />
+            android:onClick="startGame"
+            android:text="开始游戏"
+            tools:ignore="UsingOnClickInXml" />
 
-        <RadioButton
-            android:id="@+id/button_version_control"
-            style="@style/lunch_layout_button_style"
-            android:layout_width="match_parent"
+        <RadioGroup
+            android:id="@+id/button_layout"
+            android:layout_width="@dimen/lunch_layout_button_width"
             android:layout_height="wrap_content"
-            android:text="版本管理" />
+            android:orientation="vertical"
+            tools:ignore="HardcodedText">
 
-        <RadioButton
-            android:id="@+id/button_extension_manage"
-            style="@style/lunch_layout_button_style"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="扩展管理" />
+            <RadioButton
+                android:id="@+id/button_version_control"
+                style="@style/lunch_layout_button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="版本管理" />
 
-        <RadioButton
-            android:id="@+id/button_local_server"
-            style="@style/lunch_layout_button_style"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="联机服务器" />
+            <RadioButton
+                android:id="@+id/button_extension_manage"
+                style="@style/lunch_layout_button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="扩展管理" />
 
-        <RadioButton
-            android:id="@+id/button_about"
-            style="@style/lunch_layout_button_style"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="关于" />
+            <RadioButton
+                android:id="@+id/button_local_server"
+                style="@style/lunch_layout_button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="联机服务器" />
 
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/button_about"
+                style="@style/lunch_layout_button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="关于" />
+
+        </RadioGroup>
+    </LinearLayout>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="35dp"
-        android:layout_toEndOf="@+id/button_layout"
+        android:layout_margin="20dp"
+        android:layout_toEndOf="@+id/button_root_layout"
         android:background="@drawable/fragment_view_background"
         android:orientation="vertical" />
 

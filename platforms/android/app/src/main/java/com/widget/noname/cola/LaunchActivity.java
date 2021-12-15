@@ -213,7 +213,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
     }
 
-    public void startGame() {
+    public void startGame(View view) {
         startActivity(new Intent(this, MainActivity.class));
     }
 
@@ -236,7 +236,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     @Override
     public void onServeIpSet() {
         if (startGameWhenSetIp) {
-            startGame();
+            startGame(null);
         }
     }
 
@@ -259,8 +259,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_LOCAL_SERVER);
         } else if (id == R.id.button_about) {
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_ABOUT);
-        } else if (id == R.id.button_start_game) {
-            startGame();
         }
 
         if (pos >= 0) {

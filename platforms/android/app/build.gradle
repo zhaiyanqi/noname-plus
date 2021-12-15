@@ -378,9 +378,6 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
 
     implementation 'com.github.li-xiaojun:XPopup:2.7.0'
-
-    // j2v8
-    implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
 }
 
 def promptForReleaseKeyPassword() {

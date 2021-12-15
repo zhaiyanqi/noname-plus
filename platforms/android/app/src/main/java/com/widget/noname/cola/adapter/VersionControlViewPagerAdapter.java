@@ -1,8 +1,7 @@
 package com.widget.noname.cola.adapter;
 
-import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_EXT_MANAGER;
-import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_LOCAL_SERVER;
-import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_VERSION_CONTROL;
+import static com.widget.noname.cola.fragment.PagerHelper.SUB_FRAGMENT_ASSET;
+import static com.widget.noname.cola.fragment.PagerHelper.SUB_FRAGMENT_VERSION;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -11,17 +10,16 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.widget.noname.cola.fragment.EmptyFragment;
 import com.widget.noname.cola.fragment.ExtManageFragment;
-import com.widget.noname.cola.fragment.LocalServerFragment;
-import com.widget.noname.cola.fragment.VersionFragment;
+import com.widget.noname.cola.subfragment.VersionControlFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaunchViewPagerAdapter extends FragmentStateAdapter {
+public class VersionControlViewPagerAdapter extends FragmentStateAdapter {
 
     private final List<String> fragmentList = new ArrayList<>();
 
-    public LaunchViewPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
+    public VersionControlViewPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
     }
 
@@ -37,16 +35,12 @@ public class LaunchViewPagerAdapter extends FragmentStateAdapter {
         String frag = fragmentList.get(position);
 
         switch (frag) {
-            case FRAGMENT_VERSION_CONTROL: {
-                fragment = new VersionFragment();
+            case SUB_FRAGMENT_VERSION: {
+                fragment = new VersionControlFragment();
                 break;
             }
-            case FRAGMENT_EXT_MANAGER: {
+            case SUB_FRAGMENT_ASSET: {
                 fragment = new ExtManageFragment();
-                break;
-            }
-            case FRAGMENT_LOCAL_SERVER: {
-                fragment = new LocalServerFragment();
                 break;
             }
             default:

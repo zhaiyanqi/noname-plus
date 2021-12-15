@@ -8,7 +8,9 @@
         android:id="@+id/version_list_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="20dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
         android:overScrollMode="never" />
 
     <com.widget.noname.cola.WaveLoadingView
