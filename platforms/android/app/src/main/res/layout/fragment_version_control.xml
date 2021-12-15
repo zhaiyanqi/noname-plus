@@ -4,14 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/version_list_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="20dp"
         android:overScrollMode="never" />
-
 
     <com.widget.noname.cola.WaveLoadingView
         android:id="@+id/wave_loading_view"

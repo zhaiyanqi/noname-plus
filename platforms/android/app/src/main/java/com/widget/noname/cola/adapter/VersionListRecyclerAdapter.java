@@ -1,6 +1,7 @@
 package com.widget.noname.cola.adapter;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +14,22 @@ import com.lxj.xpopup.XPopup;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.VersionData;
+import com.widget.noname.cola.listener.VersionControlItemListener;
 import com.widget.noname.cola.util.FileConstant;
-import com.widget.noname.cola.util.FileUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private VersionControlItemListener listener = null;
     private final List<VersionData> list = new ArrayList<>();
     private String currentPath = "null";
+    private Context context = null;
+
+    public VersionListRecyclerAdapter(Context context) {
+        this.context = context;
+    }
 
     @NonNull
     @Override
@@ -56,7 +63,7 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
     @SuppressLint("NotifyDataSetChanged")
     public void onItemClick(View view, VersionData data) {
         if ((null == currentPath) || !currentPath.equals(data.getPath())) {
-            new XPopup.Builder(view.getContext())
+            new XPopup.Builder(context)
                     .hasStatusBar(false)
                     .animationDuration(120)
                     .hasShadowBg(false)
@@ -65,34 +72,22 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
                     .asAttachList(new String[]{"设置为游戏主体", "删除"}, null,
                             (position, text) -> {
                                 if (position == 0) {
-                                    String curPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
-
-                                    if (null != curPath) {
-                                        FileUtil.backupWebContentToPath(view.getContext(), curPath, data.getPath());
-                                    }
-
-                                    MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
-                                    currentPath = data.getPath();
-                                    unSelectAll();
-                                    data.setSelected(true);
-                                    notifyDataSetChanged();
-                                } else if (position == 1) {
-//                                    MyApplication.getThreadPool().execute(() -> {
-//                                        File file = new File(data.getPath());
-//                                        if (file.exists()) {
-//                                            boolean delete = file.delete();
-//                                        }
-//                                    });
-//                                    Uri uri = Uri.parse(data.getPath());
-//                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-//                                    intent.setType("*/*");//想要展示的文件类型
-//                                    intent.putExtra(, uri);
-//                                    view.getContext().startActivity(intent);
+                                    setGamePath(data);
                                 }
                             })
                     .show();
         }
+    }
+
+    private void setGamePath(VersionData data) {
+        XPopup.Builder builder = new XPopup.Builder(context);
+        builder.asConfirm("提示", "需要重启才能生效, 是否设置为当前版本", () -> {
+            unSelectAll();
+
+            if (null != listener) {
+                listener.onSetPathItemClick(data);
+            }
+        }).show();
     }
 
     private void unSelectAll() {
@@ -113,6 +108,14 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public void setItemClickListener(VersionControlItemListener listener) {
+        this.listener = listener;
+    }
+
+    public void setCurrentPath(String path) {
+        currentPath = path;
     }
 
     public static class VersionHolder extends RecyclerView.ViewHolder {

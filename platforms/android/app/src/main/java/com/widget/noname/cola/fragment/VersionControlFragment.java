@@ -23,10 +23,9 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.lxj.xpopup.XPopup;
-import com.lxj.xpopup.interfaces.OnConfirmListener;
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
+import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.WaveLoadingView;
@@ -34,6 +33,8 @@ import com.widget.noname.cola.adapter.VersionListRecyclerAdapter;
 import com.widget.noname.cola.data.VersionData;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.listener.ExtractAdapter;
+import com.widget.noname.cola.listener.VersionControlItemListener;
+import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
 
@@ -41,7 +42,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -49,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class VersionControlFragment extends Fragment implements View.OnClickListener {
+public class VersionControlFragment extends Fragment implements View.OnClickListener, VersionControlItemListener {
 
     private static final String GAME_FOLDER = "game";
     private static final String GAME_FILE = "game.js";
@@ -83,8 +88,8 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         loadingText.setTypeface(MyApplication.getTypeface());
 
         versionListView = view.findViewById(R.id.version_list_recycler);
-        adapter = new VersionListRecyclerAdapter();
-
+        adapter = new VersionListRecyclerAdapter(getContext());
+        adapter.setItemClickListener(this);
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         versionListView.setLayoutManager(mLinearLayoutManager);
         versionListView.setAdapter(adapter);
@@ -163,6 +168,30 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         });
     }
 
+    private String getStringFromInputStream(String path) {
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+
+        try {
+            FileInputStream in = new FileInputStream(path);
+            br = new BufferedReader(new InputStreamReader(in));
+
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException ignored) {
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+
+        return sb.toString();
+    }
 
     private List<File> findGameInPath(File root) {
         ArrayList<File> list = new ArrayList<>();
@@ -249,23 +278,17 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                 break;
             }
             case MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH: {
-                new XPopup.Builder(getContext())
-                        .asConfirm("提示", "需要重启才能生效", new OnConfirmListener() {
-                            @Override
-                            public void onConfirm() {
-                                FragmentActivity activity = getActivity();
-                                if (activity != null) {
-                                    activity.finish();
-                                }
+                FragmentActivity activity = getActivity();
+                if (activity != null) {
+                    activity.finish();
+                }
 
-                                new Handler().postDelayed(() -> {
-                                    try {
-                                        Process.killProcess(Process.myPid());
-                                    } catch (Exception ignored) {
-                                    }
-                                }, 200);
-                            }
-                        }).show();
+                new Handler().postDelayed(() -> {
+                    try {
+                        Process.killProcess(Process.myPid());
+                    } catch (Exception ignored) {
+                    }
+                }, 200);
                 break;
             }
         }
@@ -336,5 +359,20 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         if (v.getId() == R.id.import_game_button) {
             updateVersionList();
         }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void onSetPathItemClick(VersionData data) {
+        String curPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+
+        if (null != curPath) {
+            FileUtil.backupWebContentToPath(getContext(), curPath, data.getPath());
+        }
+
+        MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
+        adapter.setCurrentPath(data.getPath());
+        data.setSelected(true);
+        adapter.notifyDataSetChanged();
     }
 }

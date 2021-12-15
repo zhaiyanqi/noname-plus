@@ -104,7 +104,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             case MessageType.RESTART_WEB_VIEW: {
                 webView.removeAllViews();
                 webView.destroy();
-
+                webView.reload();
                 initWebView();
                 Toast.makeText(this, "版本切换完成", Toast.LENGTH_SHORT).show();
                 break;
@@ -203,7 +203,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void initWebView() {
-        WebView webView = findViewById(R.id.web_view);
+        webView = findViewById(R.id.web_view);
         bridgeHelper = new BridgeHelper(webView, this);
     }
 
@@ -215,12 +215,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     public void startGame() {
         startActivity(new Intent(this, MainActivity.class));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        radioGroup.clearCheck();
     }
 
     @Override

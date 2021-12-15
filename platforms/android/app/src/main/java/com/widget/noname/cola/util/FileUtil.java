@@ -274,8 +274,6 @@ public class FileUtil {
         if (null != context) {
             MyApplication.getThreadPool().execute(() -> {
                 try {
-
-
                     File root = context.getFilesDir().getParentFile();
 
                     if (root != null) {
