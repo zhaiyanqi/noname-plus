@@ -22,10 +22,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.text.DecimalFormat;
 
 public class FileUtil {
     private static final String TAG = "FileUtil";
     private static final int MOD_K = 1024;
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.##");
+
+    public static String getFileSize(File file) {
+        long length = FileUtil.folderSize(file);
+        float size = FileUtil.fileSizeToMb(length);
+
+        String suffix = " MB";
+        if (size >= MOD_K) {
+            size = size / MOD_K;
+            suffix = " GB";
+        }
+
+        return DECIMAL_FORMAT.format(size) + suffix;
+    }
 
     public static float fileSizeToMb(long size) {
 

@@ -9,7 +9,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.widget.noname.cola.fragment.EmptyFragment;
-import com.widget.noname.cola.fragment.ExtManageFragment;
+import com.widget.noname.cola.subfragment.AssetFragment;
 import com.widget.noname.cola.subfragment.VersionControlFragment;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class VersionControlViewPagerAdapter extends FragmentStateAdapter {
                 break;
             }
             case SUB_FRAGMENT_ASSET: {
-                fragment = new ExtManageFragment();
+                fragment = new AssetFragment();
                 break;
             }
             default:

@@ -2,7 +2,6 @@ package com.widget.noname.cola.util;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import com.tencent.mmkv.MMKV;
 
@@ -16,7 +15,6 @@ public class JsPathUtil {
         File rootFiles = null;
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
 
-        Log.e("zyq", "get, path: " + path);
         if ((path == null) || (path.length() == 0)) {
             rootFiles = JavaPathUtil.getAppRootFiles(context);
         } else {

@@ -19,5 +19,13 @@
         <item name="android:shadowRadius">8</item>
     </style>
 
+    <style name="asset_fragment_text_style">
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_margin">3dp</item>
+
+    </style>
+
 
 </resources>

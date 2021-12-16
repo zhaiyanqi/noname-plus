@@ -41,8 +41,6 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
         MessageHolder holder = (MessageHolder) viewHolder;
-
-
         MessageData data = list.get(position);
 
         if (data.getType() == MessageData.TYPE_IP) {

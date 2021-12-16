@@ -20,6 +20,7 @@ public class VersionFragment extends Fragment {
     private final String[] fragments = new String[]{
             "资源", "版本"
     };
+
     private ViewPager2 viewPager2 = null;
     private VersionControlViewPagerAdapter adapter = null;
 
@@ -35,17 +36,14 @@ public class VersionFragment extends Fragment {
 
         viewPager2 = view.findViewById(R.id.view_pager2);
         viewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        adapter = new VersionControlViewPagerAdapter(getActivity());
+        adapter = new VersionControlViewPagerAdapter(requireActivity());
         adapter.addFragment(PagerHelper.SUB_FRAGMENT_ASSET);
         adapter.addFragment(PagerHelper.SUB_FRAGMENT_VERSION);
         viewPager2.setAdapter(adapter);
 
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
-        new TabLayoutMediator(tabLayout, viewPager2, new TabLayoutMediator.TabConfigurationStrategy() {
-            @Override
-            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                tab.setText(fragments[position]);
-            }
-        }).attach();
+        new TabLayoutMediator(tabLayout, viewPager2, (tab, position) -> tab.setText(fragments[position])).attach();
     }
+
+    // from java call js
 }
