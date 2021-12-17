@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data class="com.widget.noname.cola.subfragment.AssetFragmentBinding">
+
+        <variable
+            name="data"
+            type="com.widget.noname.cola.databinding.AssetFragmentData" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:ignore="HardcodedText">
+
+        <TextView
+            android:id="@+id/tv_asset_path"
+            style="@style/asset_fragment_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`资源路径：` + data.assetPath}" />
+
+        <TextView
+            style="@style/asset_fragment_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`资源版本：` + (data.version ?? `加载中...`)}" />
+
+        <TextView
+            style="@style/asset_fragment_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`资源大小：` + (data.assetSize ?? `加载中...`)}" />
+
+        <TextView
+            style="@style/asset_fragment_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            style="@style/asset_fragment_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@{`最新版本[Github]:` + data.githubVersion + `, ` + data.githubChangeLog}" />
+
+    </LinearLayout>
+</layout>

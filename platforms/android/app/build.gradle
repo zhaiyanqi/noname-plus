@@ -325,6 +325,11 @@ android {
         addSigningProps(cdvDebugSigningPropertiesFile, signingConfigs.debug)
     }
 
+    buildFeatures {
+        //noinspection DataBindingWithoutKapt
+        dataBinding true
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }

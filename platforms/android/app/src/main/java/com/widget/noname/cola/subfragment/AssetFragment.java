@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,8 +24,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.lxj.xpopup.XPopup;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
-import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.UpdateInfo;
+import com.widget.noname.cola.databinding.AssetFragmentData;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JsPathUtil;
@@ -41,46 +40,39 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-@SuppressLint("SetTextI18n")
 public class AssetFragment extends Fragment {
+
     private static final String JS_TAG = "version_fragment";
     private static final String JS_FILE = "file:///android_asset/html/version_fragment.html";
-    private static final String UPDATE_URLS = "https://raw.githubusercontent.com/libccy/noname/master";
-    private static final String UPDATE_URLS_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master/";
-
+    private static final String UPDATE_URL_GITHUB = "https://raw.githubusercontent.com/libccy/noname/master";
+    private static final String UPDATE_URL_GITEE = "https://gitee.com/zhaiyanqi/noname/raw/master";
+    private static final String UPDATE_URL_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master";
 
     private OkHttpClient httpClient;
 
+    private final AssetFragmentData data = new AssetFragmentData();
+
     private WebView webView = null;
-    private TextView assetPathTextView = null;
-    private TextView assetVersionTextView = null;
-    private TextView assetSizeTextView = null;
-    private TextView newVersionTextView = null;
-    private TextView newVersionCodingTextView = null;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.sub_fragment_asset, container, false);
+        AssetFragmentBinding binding = AssetFragmentBinding.inflate(inflater);
+        binding.setData(data);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
-        assetPathTextView = view.findViewById(R.id.tv_asset_path);
-        assetPathTextView.setText("资源路径：" + path);
-
-        assetVersionTextView = view.findViewById(R.id.tv_asset_version);
-        assetSizeTextView = view.findViewById(R.id.tv_asset_space);
-        newVersionTextView = view.findViewById(R.id.tv_new_version);
-        newVersionCodingTextView = view.findViewById(R.id.tv_new_version_coding);
+        data.setAssetPath(path);
 
         if (null != path) {
             Observable.create(emitter -> emitter.onNext(FileUtil.getFileSize(new File(path))))
                     .subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(size -> assetSizeTextView.setText("资源大小：" + size));
+                    .subscribe(size -> data.setAssetSize(size.toString()));
         }
 
         initOkHttpClient();
@@ -91,13 +83,12 @@ public class AssetFragment extends Fragment {
         httpClient = new OkHttpClient();
         updateCodingVersionInfo();
         updateGithubVersionInfo();
-        ;
     }
 
     private void updateGithubVersionInfo() {
         Observable.create(emitter -> {
             Request request = new Request.Builder()
-                    .url(UPDATE_URLS + "/game/update.js")
+                    .url(UPDATE_URL_GITHUB + "/game/update.js")
                     .build();
             try (Response response = httpClient.newCall(request).execute()) {
                 String res = (String) response.body().string();
@@ -116,7 +107,7 @@ public class AssetFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(obj -> {
                     UpdateInfo updateInfo = (UpdateInfo) obj;
-                    updateInfo.setUrl(UPDATE_URLS);
+                    updateInfo.setUrl(UPDATE_URL_GITHUB);
                     String version = "最新版本[Github源]：" + updateInfo.getVersion();
                     String[] changeLog = updateInfo.getChangeLog();
 
@@ -126,22 +117,25 @@ public class AssetFragment extends Fragment {
                         String logSuffix = "(点击更新)";
                         SpannableString spannableString = new SpannableString(version + logPrefix + log + logSuffix);
                         spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#3BAFDA")), version.length(), spannableString.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                        newVersionTextView.setText(spannableString);
-                        newVersionTextView.setOnClickListener(v -> this.askForUpdate(updateInfo));
+//                        data.dr(version);
+//                        data.getGithubVersion().setChangeLog(changeLog);
+
+                        //                        newVersionTextView.setText(spannableString);
+//                        newVersionTextView.setOnClickListener(v -> this.askForUpdate(updateInfo));
                     } else {
-                        newVersionTextView.setText(version);
+//                        newVersionTextView.setText(version);
                     }
                 }, throwable -> {
                     String version = "最新版本[Github源]：" + throwable.getMessage();
-                    newVersionTextView.setText(version);
-                    newVersionTextView.setOnClickListener(null);
+//                    newVersionTextView.setText(version);
+//                    newVersionTextView.setOnClickListener(null);
                 });
     }
 
     private void updateCodingVersionInfo() {
         Observable.create(emitter -> {
             Request request = new Request.Builder()
-                    .url(UPDATE_URLS_CODING + "/game/update.js")
+                    .url(UPDATE_URL_CODING + "/game/update.js")
                     .build();
             try (Response response = httpClient.newCall(request).execute()) {
                 String res = (String) response.body().string();
@@ -160,7 +154,7 @@ public class AssetFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(obj -> {
                     UpdateInfo updateInfo = (UpdateInfo) obj;
-                    updateInfo.setUrl(UPDATE_URLS_CODING);
+                    updateInfo.setUrl(UPDATE_URL_CODING);
                     String version = "最新版本[Coding源]：" + updateInfo.getVersion();
                     String[] changeLog = updateInfo.getChangeLog();
 
@@ -170,15 +164,15 @@ public class AssetFragment extends Fragment {
                         String logSuffix = "(点击更新)";
                         SpannableString spannableString = new SpannableString(version + logPrefix + log + logSuffix);
                         spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#3BAFDA")), version.length(), spannableString.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                        newVersionCodingTextView.setText(spannableString);
-                        newVersionCodingTextView.setOnClickListener(v -> this.askForUpdate(updateInfo));
+                        data.setGithubVersion(version);
+                        data.setGithubChangeLog(log);
                     } else {
-                        newVersionCodingTextView.setText(version);
+//                        newVersionCodingTextView.setText(version);
                     }
                 }, throwable -> {
                     String version = "最新版本[Coding源]：" + throwable.getMessage();
-                    newVersionCodingTextView.setText(version);
-                    newVersionCodingTextView.setOnClickListener(null);
+//                    newVersionCodingTextView.setText(version);
+//                    newVersionCodingTextView.setOnClickListener(null);
                 });
     }
 
@@ -282,13 +276,13 @@ public class AssetFragment extends Fragment {
     public void onResourceLoad(String json) {
         Observable.create(emitter -> {
             UpdateInfo updateInfo = JSON.parseObject(json, UpdateInfo.class);
+
             if (null != updateInfo) {
-                Log.e("zyq2", json);
                 emitter.onNext(updateInfo.getVersion());
             }
         }).subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(version -> assetVersionTextView.setText("版本：" + version));
+                .subscribe(version -> data.setVersion(version.toString()));
     }
 }
 

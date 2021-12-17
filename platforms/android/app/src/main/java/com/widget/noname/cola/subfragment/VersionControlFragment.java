@@ -77,6 +77,13 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -328,13 +335,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                 }
             });
         });
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        EventBus.getDefault().register(this);
     }
 
     @Override
