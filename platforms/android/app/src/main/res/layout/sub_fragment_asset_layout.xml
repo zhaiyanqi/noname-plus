@@ -73,7 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="@{AssetFragment.UPDATE_URL_GITLAB.equals(data.updateUri)}"
-                    android:text="Gitee" />
+                    android:text="Gitlab" />
 
                 <RadioButton
                     android:id="@+id/ratio_button_coding"

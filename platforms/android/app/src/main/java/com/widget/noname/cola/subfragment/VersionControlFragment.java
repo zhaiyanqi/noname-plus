@@ -9,6 +9,7 @@ import android.os.Process;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +21,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.permissionx.guolindev.PermissionX;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
@@ -79,9 +82,19 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         adapter.setItemClickListener(this);
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         versionListView.setLayoutManager(mLinearLayoutManager);
+        versionListView.setLayoutAnimation(AnimationUtils.loadLayoutAnimation(getContext(), R.anim.versioin_list_anim));
         versionListView.setAdapter(adapter);
+        String json = MMKV.defaultMMKV().decodeString(FileConstant.VERSION_LIST_KEY);
+        JSONArray array = JSON.parseArray(json);
 
-        updateVersionList();
+
+        if (array != null) {
+            List<VersionData> lists = array.toJavaList(VersionData.class);
+            adapter.replaceList(lists);
+            loadingText.setVisibility(View.GONE);
+        } else {
+            updateVersionList();
+        }
     }
 
     private void findAllGameFileInRootView(boolean includeSd) {
@@ -212,6 +225,8 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.import_game_button) {
+            loadingText.setVisibility(View.VISIBLE);
+            adapter.clearAll();
             updateVersionList();
         }
     }

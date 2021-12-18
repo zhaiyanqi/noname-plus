@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson.JSON;
 import com.lxj.xpopup.XPopup;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.R;
@@ -125,6 +126,8 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         list.clear();
         list.addAll(l);
         currentPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, "null");
+        String json = JSON.toJSONString(list);
+        MMKV.defaultMMKV().encode(FileConstant.VERSION_LIST_KEY, json);
 
         notifyDataSetChanged();
     }
@@ -136,6 +139,11 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
 
     public void setItemClickListener(VersionControlItemListener listener) {
         this.listener = listener;
+    }
+
+    public void clearAll() {
+        list.clear();
+        notifyDataSetChanged();
     }
 
     public void setCurrentPath(String path) {

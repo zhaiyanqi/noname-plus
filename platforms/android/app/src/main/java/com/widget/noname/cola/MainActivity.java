@@ -22,11 +22,12 @@ package com.widget.noname.cola;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebView;
 
 import com.widget.noname.cola.bridge.JsBridgeInterface;
 
-import org.apache.cordova.*;
+import org.apache.cordova.CordovaActivity;
 
 public class MainActivity extends CordovaActivity {
     @Override
@@ -48,15 +49,14 @@ public class MainActivity extends CordovaActivity {
 
         // Set by <content src="index.html" /> in config.xml
         loadUrl(launchUrl);
+        hideSystemUI();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        if (hasFocus) {
-            hideSystemUI();
-        }
+        hideSystemUI();
     }
 
     private void hideSystemUI() {
@@ -72,5 +72,6 @@ public class MainActivity extends CordovaActivity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 }

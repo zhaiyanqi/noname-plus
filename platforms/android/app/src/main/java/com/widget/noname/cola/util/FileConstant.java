@@ -6,4 +6,6 @@ public interface FileConstant {
 
     String UPDATE_URL_KEY = "game_update_url";
 
+    String VERSION_LIST_KEY = "version_list_key";
+
 }

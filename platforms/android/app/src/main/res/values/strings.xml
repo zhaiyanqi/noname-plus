@@ -11,5 +11,15 @@
     <string name="btn_text_server_end">终</string>
     <string name="btn_text_server_start">启</string>
     <string name="server_start">服务器启动中</string>
-    <string name="import_gamer_asset">导</string>
+    <string name="import_gamer_asset">刷</string>
+    <string name="github_info">项目地址：https://github.com/zhaiyanqi/noname-plus</string>
+    <string name="help_info">
+        项目地址：https://github.com/zhaiyanqi/noname-plus \n
+        说明：无名杀（增强版）是在原无名杀Android版的基础上添加了额外的功能，方便对无名杀对版本进行管理。\n
+        基础功能：在QQ群文件中找到无名杀完整包(暂不支持7z的格式，后续更新版本添加) -> 选择其他应用打开 -> 选择 noname\n
+        \n
+        版本管理：可以导入多个版本随意切换、更新，不同版本之间扩展和设置互不干扰。\n
+        \n
+        联机：支持手机创建服务器，局域网内可以联机。\n
+    </string>
 </resources>
