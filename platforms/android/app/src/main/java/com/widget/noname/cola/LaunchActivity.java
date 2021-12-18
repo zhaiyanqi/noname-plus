@@ -12,12 +12,12 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -25,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.permissionx.guolindev.PermissionX;
+import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
@@ -35,6 +36,7 @@ import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
 import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.net.NonameWebSocketServer;
+import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
 import com.widget.noname.cola.view.RedDotTextView;
@@ -60,7 +62,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private LaunchViewPagerAdapter pagerAdapter = null;
     private RedDotTextView serverStatusView = null;
     private WebView webView = null;
-    private RelativeLayout rootView = null;
     private WaveLoadingView waveLoadingView = null;
     private int importChoice = -1;
     private ObjectAnimator waveViewAnimator = null;
@@ -70,7 +71,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-        rootView = findViewById(R.id.root_view);
         hideSystemUI();
         initWebView();
         initViewPager();
@@ -109,7 +109,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
         pagerAdapter = new LaunchViewPagerAdapter(this);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_VERSION_CONTROL);
-        pagerAdapter.addFragment(PagerHelper.FRAGMENT_EXT_MANAGER);
+//        pagerAdapter.addFragment(PagerHelper.FRAGMENT_EXT_MANAGER);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_LOCAL_SERVER);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_ABOUT);
 
@@ -207,25 +207,48 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void showSingleChoiceDialog(Uri data) {
-        final String[] items = new String[]{"私有目录，不需要额外权限（清除数据文件会丢失）",
-                "SD卡Document目录（清除数据，游戏本体不丢失, 需要SD卡权限）",
-                "SD卡根目录（清除数据，游戏本体不丢失, 需要SD卡权限）"};
         importChoice = 0;
         AlertDialog.Builder singleChoiceDialog =
                 new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert);
         singleChoiceDialog.setTitle("请选择解压路径");
         singleChoiceDialog.setCancelable(false);
-        singleChoiceDialog.setSingleChoiceItems(items, 0, (dialog, which) -> importChoice = which);
-        singleChoiceDialog.setPositiveButton("确定",
-                (dialog, which) -> {
-                    dialog.dismiss();
-                    runOnUiThread(() -> {
-                        if (importChoice != -1) {
-                            radioGroup.check(R.id.button_version_control);
-                            importAsset(importChoice + 1, data);
-                        }
+
+        String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+
+        String[] importChoices = null;
+
+        if (!TextUtils.isEmpty(path)) {
+            importChoices = new String[]{
+                    "覆盖当前版本「 " + path + " 」",
+                    "私有目录，不需要额外权限（清除数据, 文件会丢失）",
+                    "SD卡Document目录（游戏本体不丢失, 需要SD卡权限, 导入速度慢）"};
+            singleChoiceDialog.setPositiveButton("确定",
+                    (dialog, which) -> {
+                        dialog.dismiss();
+                        runOnUiThread(() -> {
+                            if (importChoice != -1) {
+                                radioGroup.check(R.id.button_version_control);
+                                importAsset(importChoice, data);
+                            }
+                        });
                     });
-                });
+        } else {
+            importChoices = new String[]{
+                    "私有目录，不需要额外权限（清除数据, 文件会丢失）",
+                    "SD卡Document目录（游戏本体不丢失, 需要SD卡权限, 导入速度慢）"};
+            singleChoiceDialog.setPositiveButton("确定",
+                    (dialog, which) -> {
+                        dialog.dismiss();
+                        runOnUiThread(() -> {
+                            if (importChoice != -1) {
+                                radioGroup.check(R.id.button_version_control);
+                                importAsset(importChoice + 1, data);
+                            }
+                        });
+                    });
+        }
+
+        singleChoiceDialog.setSingleChoiceItems(importChoices, 0, (dialog, which) -> importChoice = which);
         singleChoiceDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -238,6 +261,15 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     // import asset
     private void importAsset(int type, Uri uri) {
         switch (type) {
+            case MsgVersionControl.MSG_TYPE_EXTRA_CURRENT: {
+                String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+
+                if (null != path) {
+                    File root = new File(path);
+                    unZipUri(uri, root, "");
+                }
+                break;
+            }
             case MsgVersionControl.MSG_TYPE_EXTRA_INTERNAL: {
                 File root = JavaPathUtil.getAppRootFiles(this);
                 String folder = dateFormat.format(new Date());
@@ -338,6 +370,20 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
 
     public void startGame(View view) {
+        String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+
+        if (path == null) {
+            Toast.makeText(this, "游戏目录不正确，请检查版本设置。", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File file = new File(path);
+
+        if (!file.exists() || !file.isDirectory()) {
+            Toast.makeText(this, "游戏目录不存在，请检查版本设置。", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         startActivity(new Intent(this, MainActivity.class));
     }
 

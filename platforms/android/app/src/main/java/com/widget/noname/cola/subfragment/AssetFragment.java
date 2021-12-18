@@ -25,9 +25,14 @@ import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.UpdateInfo;
 import com.widget.noname.cola.databinding.AssetFragmentData;
+import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JsPathUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +58,8 @@ import okio.Sink;
 public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChangeListener {
 
     public static final String UPDATE_URL_GITHUB = "https://raw.githubusercontent.com/libccy/noname/master";
-    public static final String UPDATE_URL_GITEE = "https://gitee.com/zhaiyanqi/noname/raw/master";
+    //    public static final String UPDATE_URL_CODING2 = "https://noname-cola.coding.net/p/noname-mirror/d/noname/git/raw/master";
+    public static final String UPDATE_URL_GITLAB = "https://gitlab.com/zhaiyanqi929/noname/-/raw/master";
     public static final String UPDATE_URL_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master";
 
     private static final String JS_TAG = "version_fragment";
@@ -97,7 +103,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
         data.setAssetPath(path);
 
-        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITEE);
+        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITLAB);
         data.setUpdateUri(url);
 
         if (null != path) {
@@ -192,7 +198,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                     List<String> files = array.toJavaList(String.class);
                     files.add("game/update.js");
 
-                    allFiles = files.size();
+                    allFiles = files.size() - 1;
                     downloaded.set(0);
 
                     String baseUrl = data.getUpdateUri();
@@ -202,11 +208,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
 
                     while (iterator.hasNext()) {
                         String file = iterator.next();
-                        if (file.startsWith("theme/") && !file.contains(".css")) {
-                            iterator.remove();
-                        } else {
-                            download(baseUrl, file);
-                        }
+                        download(baseUrl, file);
                     }
                 } else {
                     data.setDownloadProgress("解析错误");
@@ -227,6 +229,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.i("DOWNLOAD", "download failed: " + e.getMessage());
                 call.cancel();
+                incrementAndUpdateDownInfo();
             }
 
             @Override
@@ -240,7 +243,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                 }
 
                 try {
-                    File dest = new File(data.getAssetPath() + "/test/" + path);
+                    File dest = new File(data.getAssetPath() + "/" + path);
                     File parentFile = dest.getParentFile();
 
                     if ((null != parentFile) && !parentFile.exists()) {
@@ -251,16 +254,12 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                     bufferedSink = Okio.buffer(sink);
                     bufferedSink.writeAll(body.source());
                     bufferedSink.close();
-                    int now = downloaded.getAndIncrement();
-
-                    if (now == allFiles) {
-                        data.setDownloadProgress("下载完成： " + now + "/ " + allFiles);
-                    } else {
-                        data.setDownloadProgress(now + "/ " + allFiles);
-                    }
+                    incrementAndUpdateDownInfo();
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.i("DOWNLOAD", "download failed");
+                    data.setUpdateStatus(AssetFragmentData.STATUS_DOWNLOAD_FAIL);
+                    incrementAndUpdateDownInfo();
                 } finally {
                     if (bufferedSink != null) {
                         bufferedSink.close();
@@ -270,6 +269,21 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                 }
             }
         });
+    }
+
+    private final Object downLock = new Object();
+
+    private void incrementAndUpdateDownInfo() {
+        synchronized (downLock) {
+            int now = downloaded.getAndIncrement();
+
+            if (now == allFiles) {
+                data.setDownloadProgress("下载完成： " + now + "/" + allFiles);
+                requireActivity().runOnUiThread(() -> webView.reload());
+            } else {
+                data.setDownloadProgress(now + "/" + allFiles);
+            }
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -331,7 +345,11 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
             }
         }).subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(version -> data.setVersion(version.toString()));
+                .subscribe(version -> {
+                    Log.e("zyq", "update version: " + version);
+                    data.setVersion(version.toString());
+                    updateVersionInfo(data.getUpdateUri());
+                });
     }
 
     @Override
@@ -341,12 +359,12 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
         if (checkedId == R.id.ratio_button_github) {
             checkUrl = UPDATE_URL_GITHUB;
         } else if (checkedId == R.id.ratio_button_gitee) {
-            checkUrl = UPDATE_URL_GITEE;
+            checkUrl = UPDATE_URL_GITLAB;
         } else if (checkedId == R.id.ratio_button_coding) {
             checkUrl = UPDATE_URL_CODING;
         }
 
-        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITEE);
+        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITLAB);
 
         if (!Objects.equals(checkUrl, url)) {
             MMKV.defaultMMKV().putString(FileConstant.UPDATE_URL_KEY, checkUrl);
@@ -356,6 +374,28 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
             data.setUpdateStatus(AssetFragmentData.STATUS_CHECKING);
             updateVersionInfo(checkUrl);
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onExtraZipFile(MsgVersionControl msg) {
+
+        if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
+            webView.clearCache(false);
+            webView.destroy();
+            initWebView();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }
 

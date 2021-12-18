@@ -6,12 +6,12 @@ import androidx.databinding.Bindable;
 import com.widget.noname.cola.BR;
 
 public class AssetFragmentData extends BaseObservable {
-    public static final int STATUS_CHECK_UPDATE = 1;
-    public static final int STATUS_CHECKING = 2;
-    public static final int STATUS_CLICK_UPDATE = 3;
-    public static final int STATUS_NEWEST = 4;
-    public static final int STATUS_UPDATING = 5;
-
+    public static final int STATUS_CHECK_UPDATE = 1; // 刷新最新版
+    public static final int STATUS_CHECKING = 2; // 刷新中
+    public static final int STATUS_CLICK_UPDATE = 3; // 点击更新
+    public static final int STATUS_UPDATING = 4; // 更新中
+    public static final int STATUS_NEWEST = 5; // 已是最新
+    public static final int STATUS_DOWNLOAD_FAIL = 6; // 已是最新
 
     private String assetPath = null;
     private String version = null;
@@ -63,6 +63,10 @@ public class AssetFragmentData extends BaseObservable {
             }
             case STATUS_CHECKING: {
                 setUpdateBtnStr("刷新中...");
+                break;
+            }
+            case STATUS_DOWNLOAD_FAIL: {
+                setUpdateBtnStr("下载失败");
                 break;
             }
         }

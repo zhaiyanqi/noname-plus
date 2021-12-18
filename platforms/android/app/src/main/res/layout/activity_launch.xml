@@ -64,6 +64,7 @@
                 style="@style/lunch_layout_button_style"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:text="扩展管理" />
 
             <RadioButton

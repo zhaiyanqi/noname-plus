@@ -4,6 +4,7 @@ import android.net.Uri;
 
 public class MsgVersionControl {
 
+    public static final int MSG_TYPE_EXTRA_CURRENT = 0;
     public static final int MSG_TYPE_EXTRA_INTERNAL = 1;
     public static final int MSG_TYPE_EXTRA_EXTERNAL_DOCUMENT = 2;
     public static final int MSG_TYPE_EXTRA_EXTERNAL = 3;

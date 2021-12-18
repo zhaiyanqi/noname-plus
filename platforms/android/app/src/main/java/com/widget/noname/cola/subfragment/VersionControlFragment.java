@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +41,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class VersionControlFragment extends Fragment implements View.OnClickListener, VersionControlItemListener {
 
@@ -224,5 +229,47 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         adapter.setCurrentPath(data.getPath());
         data.setSelected(true);
         adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onItemDelete(VersionData data) {
+        Observable.create(emitter -> {
+            try {
+                File file = new File(data.getPath());
+                delete(file);
+                updateVersionList();
+                emitter.onNext(true);
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(obj -> {
+                    boolean del = (boolean) obj;
+
+                    if (del) {
+                        Toast.makeText(getContext(), "删除成功", Toast.LENGTH_SHORT).show();
+                        MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, null);
+                    }
+                }, throwable -> {
+                    Toast.makeText(getContext(), "删除失败" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    public void delete(File file) {
+        if (!file.exists()) return;
+
+        if (!file.isFile() && file.list() != null) {
+            File[] files = file.listFiles();
+
+            if (files != null) {
+                for (File a : files) {
+                    delete(a);
+                }
+            }
+        }
+
+        file.delete();
+        System.out.println("删除了" + file.getName());
     }
 }

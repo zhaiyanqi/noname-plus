@@ -49,7 +49,6 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         holder.sizeTextView.setText(data.getSize());
         holder.pathTextView.setText(data.getPath());
         holder.dateTextView.setText(data.getDate());
-//        holder.itemView.setSelected(data.isSelected());
         holder.itemView.setSelected((null != currentPath) && currentPath.equals(data.getPath()));
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +72,22 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
                             (position, text) -> {
                                 if (position == 0) {
                                     setGamePath(data);
+                                } else {
+                                    delGamePath(data);
+                                }
+                            })
+                    .show();
+        } else {
+            new XPopup.Builder(context)
+                    .hasStatusBar(false)
+                    .animationDuration(120)
+                    .hasShadowBg(false)
+                    .isViewMode(true)
+                    .atView(view)
+                    .asAttachList(new String[]{"删除"}, null,
+                            (position, text) -> {
+                                if (position == 0) {
+                                    delGamePath(data);
                                 }
                             })
                     .show();
@@ -86,6 +101,15 @@ public class VersionListRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
 
             if (null != listener) {
                 listener.onSetPathItemClick(data);
+            }
+        }).show();
+    }
+
+    private void delGamePath(VersionData data) {
+        XPopup.Builder builder = new XPopup.Builder(context);
+        builder.asConfirm("提示", "是否删除 " + data.getPath(), () -> {
+            if (null != listener) {
+                listener.onItemDelete(data);
             }
         }).show();
     }
