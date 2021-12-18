@@ -8,6 +8,7 @@ public class MsgVersionControl {
     public static final int MSG_TYPE_EXTRA_EXTERNAL_DOCUMENT = 2;
     public static final int MSG_TYPE_EXTRA_EXTERNAL = 3;
     public static final int MSG_TYPE_CHANGE_ASSET_FINISH = 4;
+    public static final int MSG_TYPE_UPDATE_LIST = 5;
 
     private int msgType = 0;
     private Uri uri;

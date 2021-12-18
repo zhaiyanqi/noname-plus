@@ -1,12 +1,20 @@
 package com.widget.noname.cola;
 
+import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
@@ -16,6 +24,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.permissionx.guolindev.PermissionX;
 import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
@@ -24,25 +33,38 @@ import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
+import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.net.NonameWebSocketServer;
+import com.widget.noname.cola.util.FileUtil;
+import com.widget.noname.cola.util.JavaPathUtil;
 import com.widget.noname.cola.view.RedDotTextView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback, RadioGroup.OnCheckedChangeListener {
     private static final String TAG = "LaunchActivity";
 
-    private BridgeHelper bridgeHelper = null;
-//    private WaveLoadingView waveLoadingView = null;
+    @SuppressLint("SimpleDateFormat")
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
+    private BridgeHelper bridgeHelper = null;
     private RadioGroup radioGroup = null;
     private ViewPager2 viewPager = null;
     private LaunchViewPagerAdapter pagerAdapter = null;
     private RedDotTextView serverStatusView = null;
     private WebView webView = null;
     private RelativeLayout rootView = null;
+    private WaveLoadingView waveLoadingView = null;
+    private int importChoice = -1;
+    private ObjectAnimator waveViewAnimator = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +74,8 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         hideSystemUI();
         initWebView();
         initViewPager();
+        initWaveView();
+
         serverStatusView = findViewById(R.id.server_status_red_dot);
 
         Intent intent = getIntent();
@@ -60,6 +84,20 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             Uri data = intent.getData();
             showSingleChoiceDialog(data);
         }
+    }
+
+    private void initWaveView() {
+        Resources resources = getResources();
+        waveLoadingView = findViewById(R.id.wave_loading_view);
+        waveLoadingView.setShapeType(WaveLoadingView.ShapeType.CIRCLE);
+        waveLoadingView.setWaterLevelRatio(0);
+        waveLoadingView.setBorderWidth(resources.getDimensionPixelSize(R.dimen.wave_border_width));
+        waveLoadingView.setAmplitudeRatio(10);
+        waveLoadingView.setWaveColor(resources.getColor(R.color.wave_view_wave_color));
+        waveLoadingView.setBorderColor(resources.getColor(R.color.wave_view_border_color));
+        waveLoadingView.setAnimDuration(3000);
+        waveLoadingView.setCenterTitleColor(Color.WHITE);
+        waveLoadingView.setCenterTitleFont(MyApplication.getTypeface());
     }
 
     private void initViewPager() {
@@ -168,28 +206,23 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     }
 
-    private int yourChoice = -1;
-
     private void showSingleChoiceDialog(Uri data) {
         final String[] items = new String[]{"私有目录，不需要额外权限（清除数据文件会丢失）",
                 "SD卡Document目录（清除数据，游戏本体不丢失, 需要SD卡权限）",
                 "SD卡根目录（清除数据，游戏本体不丢失, 需要SD卡权限）"};
-        yourChoice = 0;
+        importChoice = 0;
         AlertDialog.Builder singleChoiceDialog =
                 new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert);
         singleChoiceDialog.setTitle("请选择解压路径");
         singleChoiceDialog.setCancelable(false);
-        singleChoiceDialog.setSingleChoiceItems(items, 0, (dialog, which) -> yourChoice = which);
+        singleChoiceDialog.setSingleChoiceItems(items, 0, (dialog, which) -> importChoice = which);
         singleChoiceDialog.setPositiveButton("确定",
                 (dialog, which) -> {
                     dialog.dismiss();
                     runOnUiThread(() -> {
-                        if (yourChoice != -1) {
+                        if (importChoice != -1) {
                             radioGroup.check(R.id.button_version_control);
-                            MsgVersionControl msg = new MsgVersionControl();
-                            msg.setUri(data);
-                            msg.setMsgType(yourChoice + 1);
-                            EventBus.getDefault().post(msg);
+                            importAsset(importChoice + 1, data);
                         }
                     });
                 });
@@ -202,16 +235,107 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         singleChoiceDialog.show();
     }
 
+    // import asset
+    private void importAsset(int type, Uri uri) {
+        switch (type) {
+            case MsgVersionControl.MSG_TYPE_EXTRA_INTERNAL: {
+                File root = JavaPathUtil.getAppRootFiles(this);
+                String folder = dateFormat.format(new Date());
+                unZipUri(uri, root, folder);
+                break;
+            }
+            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL_DOCUMENT: {
+                PermissionX.init(this)
+                        .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .request((allGranted, grantedList, deniedList) -> {
+                            if (allGranted) {
+                                File document = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+                                File root = new File(document.getAbsolutePath() + File.separator + "noname");
+
+                                if (!root.exists() || !root.isDirectory()) {
+                                    root.mkdirs();
+                                }
+
+                                String folder = dateFormat.format(new Date());
+                                unZipUri(uri, root, folder);
+                            } else {
+                                Toast.makeText(LaunchActivity.this, "未获取到SD卡权限，无法解压，请检查系统设置。", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                break;
+            }
+            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL: {
+
+                break;
+            }
+        }
+    }
+
+    private void unZipUri(Uri uri, File dest, String folder) {
+        waveLoadingView.setVisibility(View.VISIBLE);
+
+        MyApplication.getThreadPool().execute(() -> {
+
+            FileUtil.extractUriToGame(this, uri, dest, folder, new ExtractAdapter() {
+
+                @Override
+                public void onExtractProgress(int progress) {
+                    runOnUiThread(() -> {
+                        waveLoadingView.setProgressValue(progress);
+                        waveLoadingView.setCenterTitle(String.valueOf(progress));
+                    });
+                }
+
+                @Override
+                public void onExtractDone() {
+
+                }
+
+                @Override
+                public void onExtractError() {
+                }
+
+                @Override
+                public void onExtractSaved(String path) {
+                    runOnUiThread(() -> {
+                        waveLoadingView.setProgressValue(100);
+                        waveLoadingView.setCenterTitle(String.valueOf(100));
+                        MsgVersionControl msg = new MsgVersionControl();
+                        msg.setMsgType(MsgVersionControl.MSG_TYPE_UPDATE_LIST);
+                        EventBus.getDefault().post(msg);
+                        hideWaveLoadingView();
+                    });
+                }
+            });
+        });
+    }
+
+    private void hideWaveLoadingView() {
+
+        if ((null != waveViewAnimator) && waveViewAnimator.isStarted()) {
+            waveViewAnimator.cancel();
+        }
+
+        if (null == waveViewAnimator) {
+            waveViewAnimator = ObjectAnimator.ofFloat(waveLoadingView, "alpha", 1f, 0);
+            waveViewAnimator.setDuration(250);
+            waveViewAnimator.setInterpolator(new PathInterpolator(0.33f, 0, 0.67f, 1f));
+            waveViewAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    waveLoadingView.setVisibility(View.GONE);
+                }
+            });
+        }
+
+        waveViewAnimator.start();
+    }
+
     private void initWebView() {
         webView = findViewById(R.id.web_view);
         bridgeHelper = new BridgeHelper(webView, this);
     }
 
-    public void testJavaBridge(View view) {
-        if (null != bridgeHelper) {
-            bridgeHelper.getExtensions();
-        }
-    }
 
     public void startGame(View view) {
         startActivity(new Intent(this, MainActivity.class));

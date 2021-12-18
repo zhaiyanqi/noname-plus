@@ -2,9 +2,6 @@ package com.widget.noname.cola.subfragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -14,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,15 +20,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.permissionx.guolindev.PermissionX;
-import com.permissionx.guolindev.callback.RequestCallback;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.R;
-import com.widget.noname.cola.WaveLoadingView;
 import com.widget.noname.cola.adapter.VersionListRecyclerAdapter;
 import com.widget.noname.cola.data.VersionData;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
-import com.widget.noname.cola.listener.ExtractAdapter;
 import com.widget.noname.cola.listener.VersionControlItemListener;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
@@ -42,30 +35,19 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class VersionControlFragment extends Fragment implements View.OnClickListener, VersionControlItemListener {
 
     private static final String GAME_FOLDER = "game";
     private static final String GAME_FILE = "game.js";
-    private static final int MOD_K = 1024;
 
     private final DateFormat dateTimeFormat = SimpleDateFormat.getDateTimeInstance();
-    @SuppressLint("SimpleDateFormat")
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-    private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
 
-    private WaveLoadingView waveLoadingView = null;
     private RecyclerView versionListView = null;
     private VersionListRecyclerAdapter adapter = null;
     private TextView loadingText = null;
@@ -74,13 +56,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_version_control, container, false);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -101,22 +76,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         versionListView.setLayoutManager(mLinearLayoutManager);
         versionListView.setAdapter(adapter);
 
-        initWaveView(view);
         updateVersionList();
-    }
-
-    private void initWaveView(View view) {
-        Resources resources = getResources();
-        waveLoadingView = view.findViewById(R.id.wave_loading_view);
-        waveLoadingView.setShapeType(WaveLoadingView.ShapeType.CIRCLE);
-        waveLoadingView.setWaterLevelRatio(0);
-        waveLoadingView.setBorderWidth(resources.getDimensionPixelSize(R.dimen.wave_border_width));
-        waveLoadingView.setAmplitudeRatio(10);
-        waveLoadingView.setWaveColor(resources.getColor(R.color.wave_view_wave_color));
-        waveLoadingView.setBorderColor(resources.getColor(R.color.wave_view_border_color));
-        waveLoadingView.setAnimDuration(3000);
-        waveLoadingView.setCenterTitleColor(Color.WHITE);
-        waveLoadingView.setCenterTitleFont(MyApplication.getTypeface());
     }
 
     private void findAllGameFileInRootView(boolean includeSd) {
@@ -154,17 +114,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                 data.setDate(dateTimeFormat.format(file.lastModified()));
                 data.setName(file.getName());
                 data.setPath(file.getPath());
-
-//                long length = FileUtil.folderSize(file);
-//                float size = FileUtil.fileSizeToMb(length);
-//
-//                String suffix = " MB";
-//                if (size >= MOD_K) {
-//                    size = size / MOD_K;
-//                    suffix = " GB";
-//                }
-//
-//                data.setSize(decimalFormat.format(size) + suffix);
                 verList.add(data);
             }
 
@@ -173,31 +122,6 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                 loadingText.setVisibility(View.GONE);
             });
         });
-    }
-
-    private String getStringFromInputStream(String path) {
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-        String line = null;
-
-        try {
-            FileInputStream in = new FileInputStream(path);
-            br = new BufferedReader(new InputStreamReader(in));
-
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-        } catch (IOException ignored) {
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
-
-        return sb.toString();
     }
 
     private List<File> findGameInPath(File root) {
@@ -239,102 +163,26 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         return false;
     }
 
-    private void runOnUiThread(Runnable runnable) {
-        FragmentActivity activity = getActivity();
-
-        if (null != activity) {
-            activity.runOnUiThread(runnable);
-        }
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onExtraZipFile(MsgVersionControl msg) {
 
-        switch (msg.getMsgType()) {
-            case MsgVersionControl.MSG_TYPE_EXTRA_INTERNAL: {
-                File root = JavaPathUtil.getAppRootFiles(getContext());
-                String folder = dateFormat.format(new Date());
-                unZipUri(msg.getUri(), root, folder);
-                break;
-            }
-            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL_DOCUMENT: {
-                PermissionX.init(this)
-                        .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .request(new RequestCallback() {
-                            @Override
-                            public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
-                                if (allGranted) {
-                                    File document = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-                                    File root = new File(document.getAbsolutePath() + File.separator + "noname");
+        if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
+            updateVersionList();
+        } else if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH) {
+            FragmentActivity activity = getActivity();
 
-                                    if (!root.exists() || !root.isDirectory()) {
-                                        root.mkdirs();
-                                    }
-
-                                    String folder = dateFormat.format(new Date());
-                                    unZipUri(msg.getUri(), root, folder);
-                                } else {
-                                    Toast.makeText(getContext(), "未获取到SD卡权限，无法解压，请检查系统设置。", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                break;
+            if (null != activity) {
+                activity.finish();
             }
-            case MsgVersionControl.MSG_TYPE_EXTRA_EXTERNAL: {
 
-                break;
-            }
-            case MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH: {
-                FragmentActivity activity = getActivity();
-                if (activity != null) {
-                    activity.finish();
+            new Handler().postDelayed(() -> {
+                try {
+                    Process.killProcess(Process.myPid());
+                } catch (Exception ignored) {
                 }
-
-                new Handler().postDelayed(() -> {
-                    try {
-                        Process.killProcess(Process.myPid());
-                    } catch (Exception ignored) {
-                    }
-                }, 200);
-                break;
-            }
+            }, 200);
         }
-    }
-
-    private void unZipUri(Uri uri, File dest, String folder) {
-        waveLoadingView.setVisibility(View.VISIBLE);
-
-        MyApplication.getThreadPool().execute(() -> {
-
-            FileUtil.extractUriToGame(getContext(), uri, dest, folder, new ExtractAdapter() {
-
-                @Override
-                public void onExtractProgress(int progress) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(progress);
-                        waveLoadingView.setCenterTitle(String.valueOf(progress));
-                    });
-                }
-
-                @Override
-                public void onExtractDone() {
-
-                }
-
-                @Override
-                public void onExtractError() {
-                }
-
-                @Override
-                public void onExtractSaved(String path) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(100);
-                        waveLoadingView.setCenterTitle(String.valueOf(100));
-                        runOnUiThread(() -> updateVersionList());
-                    });
-                }
-            });
-        });
     }
 
     @Override
@@ -346,12 +194,14 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
     private void updateVersionList() {
         PermissionX.init(this)
                 .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .request(new RequestCallback() {
-                    @Override
-                    public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
-                        findAllGameFileInRootView(allGranted);
-                    }
-                });
+                .request((allGranted, grantedList, deniedList) -> findAllGameFileInRootView(allGranted));
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        EventBus.getDefault().register(this);
     }
 
     @Override

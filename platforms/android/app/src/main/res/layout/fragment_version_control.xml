@@ -13,16 +13,6 @@
         android:layout_marginBottom="10dp"
         android:overScrollMode="never" />
 
-    <com.widget.noname.cola.WaveLoadingView
-        android:id="@+id/wave_loading_view"
-        android:layout_width="@dimen/wave_view_size"
-        android:layout_height="@dimen/wave_view_size"
-        android:layout_marginStart="20dp"
-        android:layout_marginBottom="20dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <Button
         android:id="@+id/import_game_button"
         style="@style/normal_shadow_style"

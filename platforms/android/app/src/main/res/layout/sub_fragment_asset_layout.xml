@@ -4,6 +4,12 @@
 
     <data class="com.widget.noname.cola.subfragment.AssetFragmentBinding">
 
+        <import type="com.widget.noname.cola.subfragment.AssetFragment" />
+
+        <import type="com.widget.noname.cola.databinding.AssetFragmentData" />
+
+        <import type="android.widget.RadioGroup.OnCheckedChangeListener" />
+
         <variable
             name="data"
             type="com.widget.noname.cola.databinding.AssetFragmentData" />
@@ -35,20 +41,83 @@
             android:layout_height="wrap_content"
             android:text="@{`资源大小：` + (data.assetSize ?? `加载中...`)}" />
 
-        <TextView
-            style="@style/asset_fragment_text_style"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:focusable="true" />
+            android:background="@drawable/fragment_view_background"
+            android:orientation="vertical"
+            android:padding="10dp">
 
-        <TextView
-            style="@style/asset_fragment_text_style"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:focusable="true"
-            android:text="@{`最新版本[Github]:` + data.githubVersion + `, ` + data.githubChangeLog}" />
+            <RadioGroup
+                android:id="@+id/radio_group_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/asset_fragment_text_style"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="更新源：" />
+
+                <RadioButton
+                    android:id="@+id/ratio_button_github"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{AssetFragment.UPDATE_URL_GITHUB.equals(data.updateUri)}"
+                    android:text="Github" />
+
+                <RadioButton
+                    android:id="@+id/ratio_button_gitee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{AssetFragment.UPDATE_URL_GITEE.equals(data.updateUri)}"
+                    android:text="Gitee" />
+
+                <RadioButton
+                    android:id="@+id/ratio_button_coding"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{AssetFragment.UPDATE_URL_CODING.equals(data.updateUri)}"
+                    android:text="Coding" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    style="@style/asset_fragment_text_style"
+                    android:text="@{data.downloadProgress}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/button_click_ask_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="@{data.canUpdate}"
+                    android:text="@{data.updateBtnStr}" />
+            </RadioGroup>
+
+            <TextView
+                style="@style/asset_fragment_text_style"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@{`最新版本:` + data.updateVersion}" />
+
+            <TextView
+                style="@style/asset_fragment_text_style"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@{`更新日志:` + data.updateChangeLog}" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </layout>

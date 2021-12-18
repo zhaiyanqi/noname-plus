@@ -2,11 +2,8 @@ package com.widget.noname.cola.subfragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +11,7 @@ import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.lxj.xpopup.XPopup;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
+import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.UpdateInfo;
 import com.widget.noname.cola.databinding.AssetFragmentData;
 import com.widget.noname.cola.util.FileConstant;
@@ -31,27 +30,41 @@ import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JsPathUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.BufferedSink;
+import okio.Okio;
+import okio.Sink;
 
-public class AssetFragment extends Fragment {
+public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChangeListener {
+
+    public static final String UPDATE_URL_GITHUB = "https://raw.githubusercontent.com/libccy/noname/master";
+    public static final String UPDATE_URL_GITEE = "https://gitee.com/zhaiyanqi/noname/raw/master";
+    public static final String UPDATE_URL_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master";
 
     private static final String JS_TAG = "version_fragment";
     private static final String JS_FILE = "file:///android_asset/html/version_fragment.html";
-    private static final String UPDATE_URL_GITHUB = "https://raw.githubusercontent.com/libccy/noname/master";
-    private static final String UPDATE_URL_GITEE = "https://gitee.com/zhaiyanqi/noname/raw/master";
-    private static final String UPDATE_URL_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master";
-
-    private OkHttpClient httpClient;
 
     private final AssetFragmentData data = new AssetFragmentData();
 
+    private final AtomicInteger downloaded = new AtomicInteger();
+    private int allFiles = 0;
+
+    private OkHttpClient httpClient;
     private WebView webView = null;
 
     @Nullable
@@ -65,8 +78,27 @@ public class AssetFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        initData();
+        initOkHttpClient();
+        initView(view);
+    }
+
+    private void initView(View view) {
+        RadioGroup radioGroup = view.findViewById(R.id.radio_group_update);
+        radioGroup.setOnCheckedChangeListener(this);
+
+        view.findViewById(R.id.button_click_ask_update).setOnClickListener(v -> askForUpdate());
+
+        initWebView();
+    }
+
+    private void initData() {
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
         data.setAssetPath(path);
+
+        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITEE);
+        data.setUpdateUri(url);
 
         if (null != path) {
             Observable.create(emitter -> emitter.onNext(FileUtil.getFileSize(new File(path))))
@@ -74,153 +106,170 @@ public class AssetFragment extends Fragment {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(size -> data.setAssetSize(size.toString()));
         }
-
-        initOkHttpClient();
-        initWebView();
     }
 
     private void initOkHttpClient() {
         httpClient = new OkHttpClient();
-        updateCodingVersionInfo();
-        updateGithubVersionInfo();
+        data.setUpdateStatus(AssetFragmentData.STATUS_CHECK_UPDATE);
     }
 
-    private void updateGithubVersionInfo() {
-        Observable.create(emitter -> {
-            Request request = new Request.Builder()
-                    .url(UPDATE_URL_GITHUB + "/game/update.js")
-                    .build();
-            try (Response response = httpClient.newCall(request).execute()) {
-                String res = (String) response.body().string();
-                int index = res.indexOf("{");
-                int lastIdx = res.lastIndexOf("}");
-
-                if (index > -1 && lastIdx > -1) {
-                    res = res.substring(index, lastIdx + 1);
-                    UpdateInfo updateInfo = JSON.parseObject(res, UpdateInfo.class);
-                    emitter.onNext(updateInfo);
-                }
-            } catch (Exception e) {
-                emitter.onError(new Throwable("网络错误"));
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(obj -> {
-                    UpdateInfo updateInfo = (UpdateInfo) obj;
-                    updateInfo.setUrl(UPDATE_URL_GITHUB);
-                    String version = "最新版本[Github源]：" + updateInfo.getVersion();
-                    String[] changeLog = updateInfo.getChangeLog();
-
-                    if (null != changeLog) {
-                        String logPrefix = " 更新日志：";
-                        String log = Arrays.toString(changeLog);
-                        String logSuffix = "(点击更新)";
-                        SpannableString spannableString = new SpannableString(version + logPrefix + log + logSuffix);
-                        spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#3BAFDA")), version.length(), spannableString.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-//                        data.dr(version);
-//                        data.getGithubVersion().setChangeLog(changeLog);
-
-                        //                        newVersionTextView.setText(spannableString);
-//                        newVersionTextView.setOnClickListener(v -> this.askForUpdate(updateInfo));
-                    } else {
-//                        newVersionTextView.setText(version);
-                    }
-                }, throwable -> {
-                    String version = "最新版本[Github源]：" + throwable.getMessage();
-//                    newVersionTextView.setText(version);
-//                    newVersionTextView.setOnClickListener(null);
-                });
-    }
-
-    private void updateCodingVersionInfo() {
-        Observable.create(emitter -> {
-            Request request = new Request.Builder()
-                    .url(UPDATE_URL_CODING + "/game/update.js")
-                    .build();
-            try (Response response = httpClient.newCall(request).execute()) {
-                String res = (String) response.body().string();
-                int index = res.indexOf("{");
-                int lastIdx = res.lastIndexOf("}");
-
-                if (index > -1 && lastIdx > -1) {
-                    res = res.substring(index, lastIdx + 1);
-                    UpdateInfo updateInfo = JSON.parseObject(res, UpdateInfo.class);
-                    emitter.onNext(updateInfo);
-                }
-            } catch (Exception e) {
-                emitter.onError(new Throwable("网络错误"));
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(obj -> {
-                    UpdateInfo updateInfo = (UpdateInfo) obj;
-                    updateInfo.setUrl(UPDATE_URL_CODING);
-                    String version = "最新版本[Coding源]：" + updateInfo.getVersion();
-                    String[] changeLog = updateInfo.getChangeLog();
-
-                    if (null != changeLog) {
-                        String logPrefix = " 更新日志：";
-                        String log = Arrays.toString(changeLog);
-                        String logSuffix = "(点击更新)";
-                        SpannableString spannableString = new SpannableString(version + logPrefix + log + logSuffix);
-                        spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#3BAFDA")), version.length(), spannableString.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                        data.setGithubVersion(version);
-                        data.setGithubChangeLog(log);
-                    } else {
-//                        newVersionCodingTextView.setText(version);
-                    }
-                }, throwable -> {
-                    String version = "最新版本[Coding源]：" + throwable.getMessage();
-//                    newVersionCodingTextView.setText(version);
-//                    newVersionCodingTextView.setOnClickListener(null);
-                });
-    }
-
-    private void askForUpdate(UpdateInfo info) {
-        String title = "有新版本" + info.getUpdate() + "可用，是否下载？";
-        StringBuilder sb = new StringBuilder();
-
-        String[] changeLog = info.getChangeLog();
-
-        if (null != changeLog) {
-            for (String log : changeLog) {
-                sb.append(log).append(";");
-            }
+    private void updateVersionInfo(String url) {
+        if (TextUtils.isEmpty(url)) {
+            return;
         }
 
-        new XPopup.Builder(getContext())
-                .isViewMode(true)
-                .asConfirm(title, sb.toString(), () -> {
-                    goUpdate(info);
-                }).show();
+        String updateUrl = url.endsWith("/") ? (url + "game/update.js") : (url + "/game/update.js");
+
+        Observable.create(emitter -> {
+            Request request = new Request.Builder()
+                    .url(updateUrl)
+                    .build();
+            try (Response response = httpClient.newCall(request).execute()) {
+                String res = response.body().string();
+                int index = res.indexOf("{");
+                int lastIdx = res.lastIndexOf("}");
+
+                if (index > -1 && lastIdx > -1) {
+                    res = res.substring(index, lastIdx + 1);
+                    UpdateInfo updateInfo = JSON.parseObject(res, UpdateInfo.class);
+                    emitter.onNext(updateInfo);
+                } else {
+                    emitter.onError(new Throwable("获取失败"));
+                    data.setUpdateStatus(AssetFragmentData.STATUS_CHECK_UPDATE);
+                }
+            } catch (Exception e) {
+                emitter.onError(new Throwable("网络错误"));
+                data.setUpdateStatus(AssetFragmentData.STATUS_CHECK_UPDATE);
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(obj -> {
+                    UpdateInfo updateInfo = (UpdateInfo) obj;
+                    data.setUpdateVersion(updateInfo.getVersion());
+                    String[] changeLog = updateInfo.getChangeLog();
+
+                    if (null != changeLog) {
+                        data.setUpdateChangeLog(Arrays.toString(changeLog));
+                    }
+
+                    data.setUpdateStatus(data.getVersion().compareTo(data.getUpdateVersion()) < 0 ?
+                            AssetFragmentData.STATUS_CLICK_UPDATE : AssetFragmentData.STATUS_NEWEST);
+                }, throwable -> {
+                    data.setUpdateVersion(throwable.getMessage());
+                    data.setUpdateChangeLog(throwable.getMessage());
+                });
     }
 
-    private void goUpdate(UpdateInfo info) {
-        if (null != info) {
-            Observable.create(emitter -> {
-                Request request = new Request.Builder()
-                        .url(info.getUrl() + "/game/source.js")
-                        .build();
-                try (Response response = httpClient.newCall(request).execute()) {
-                    String res = (String) response.body().string();
-                    Log.e("zyq", "res: " + res);
-                    int index = res.indexOf("[");
-                    int lastIdx = res.lastIndexOf("]");
+    private void askForUpdate() {
+        if (data.getUpdateStatus() == AssetFragmentData.STATUS_CHECK_UPDATE) {
+            data.setUpdateStatus(AssetFragmentData.STATUS_CHECKING);
+            updateVersionInfo(data.getUpdateUri());
+        } else {
+            String title = "有新版本" + data.getUpdateVersion() + "可用，是否下载？";
+            String info = data.getUpdateChangeLog();
 
-                    if (index > -1 && lastIdx > -1) {
-                        res = res.substring(index, lastIdx + 1);
-                        JSONArray array = JSONArray.parseArray(res);
-                        Log.e("zyq", "arr" + array);
-//                        UpdateInfo updateInfo = JSON.parseObject(res, UpdateInfo.class);
-//                        emitter.onNext(updateInfo);
+            new XPopup.Builder(getContext())
+                    .isViewMode(true)
+                    .asConfirm(title, info, this::goUpdate).show();
+        }
+    }
+
+    private void goUpdate() {
+        data.setUpdateStatus(AssetFragmentData.STATUS_UPDATING);
+        Observable.create(emitter -> {
+            Request request = new Request.Builder()
+                    .url(data.getUpdateUri() + "/game/source.js")
+                    .build();
+            try (Response response = httpClient.newCall(request).execute()) {
+                String res = Objects.requireNonNull(response.body()).string();
+                Log.e("zyq", "res: " + res);
+                int index = res.indexOf("[");
+                int lastIdx = res.lastIndexOf("]");
+
+                if (index > -1 && lastIdx > -1) {
+                    res = res.substring(index, lastIdx + 1);
+                    JSONArray array = JSONArray.parseArray(res);
+                    List<String> files = array.toJavaList(String.class);
+                    files.add("game/update.js");
+
+                    allFiles = files.size();
+                    downloaded.set(0);
+
+                    String baseUrl = data.getUpdateUri();
+                    baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+
+                    Iterator<String> iterator = files.iterator();
+
+                    while (iterator.hasNext()) {
+                        String file = iterator.next();
+                        if (file.startsWith("theme/") && !file.contains(".css")) {
+                            iterator.remove();
+                        } else {
+                            download(baseUrl, file);
+                        }
+                    }
+                } else {
+                    data.setDownloadProgress("解析错误");
+                }
+            } catch (Exception e) {
+                emitter.onError(new Throwable("网络错误"));
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
+    public void download(final String baseUrl, String path) {
+        Request request = new Request.Builder().url(baseUrl + path).build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.i("DOWNLOAD", "download failed: " + e.getMessage());
+                call.cancel();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                Sink sink = null;
+                BufferedSink bufferedSink = null;
+                ResponseBody body = response.body();
+
+                if (body == null) {
+                    return;
+                }
+
+                try {
+                    File dest = new File(data.getAssetPath() + "/test/" + path);
+                    File parentFile = dest.getParentFile();
+
+                    if ((null != parentFile) && !parentFile.exists()) {
+                        parentFile.mkdirs();
+                    }
+
+                    sink = Okio.sink(dest);
+                    bufferedSink = Okio.buffer(sink);
+                    bufferedSink.writeAll(body.source());
+                    bufferedSink.close();
+                    int now = downloaded.getAndIncrement();
+
+                    if (now == allFiles) {
+                        data.setDownloadProgress("下载完成： " + now + "/ " + allFiles);
+                    } else {
+                        data.setDownloadProgress(now + "/ " + allFiles);
                     }
                 } catch (Exception e) {
-                    emitter.onError(new Throwable("网络错误"));
+                    e.printStackTrace();
+                    Log.i("DOWNLOAD", "download failed");
+                } finally {
+                    if (bufferedSink != null) {
+                        bufferedSink.close();
+                    }
+
+                    body.close();
                 }
-            }).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe();
-        }
+            }
+        });
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -283,6 +332,30 @@ public class AssetFragment extends Fragment {
         }).subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(version -> data.setVersion(version.toString()));
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup group, int checkedId) {
+        String checkUrl = null;
+
+        if (checkedId == R.id.ratio_button_github) {
+            checkUrl = UPDATE_URL_GITHUB;
+        } else if (checkedId == R.id.ratio_button_gitee) {
+            checkUrl = UPDATE_URL_GITEE;
+        } else if (checkedId == R.id.ratio_button_coding) {
+            checkUrl = UPDATE_URL_CODING;
+        }
+
+        String url = MMKV.defaultMMKV().getString(FileConstant.UPDATE_URL_KEY, UPDATE_URL_GITEE);
+
+        if (!Objects.equals(checkUrl, url)) {
+            MMKV.defaultMMKV().putString(FileConstant.UPDATE_URL_KEY, checkUrl);
+            data.setUpdateUri(checkUrl);
+            data.setUpdateVersion("刷新中...");
+            data.setUpdateChangeLog("刷新中...");
+            data.setUpdateStatus(AssetFragmentData.STATUS_CHECKING);
+            updateVersionInfo(checkUrl);
+        }
     }
 }
 
