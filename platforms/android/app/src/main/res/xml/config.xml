@@ -1,12 +1,22 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.widget.noname.cola" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.widget.noname.cola"
+    version="1.0.0"
+    xmlns="http://www.w3.org/ns/widgets">
     <feature name="Whitelist">
-        <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
-        <param name="onload" value="true" />
+        <param
+            name="android-package"
+            value="org.apache.cordova.whitelist.WhitelistPlugin" />
+        <param
+            name="onload"
+            value="true" />
     </feature>
     <feature name="File">
-        <param name="android-package" value="org.apache.cordova.file.FileUtils" />
-        <param name="onload" value="true" />
+        <param
+            name="android-package"
+            value="org.apache.cordova.file.FileUtils" />
+        <param
+            name="onload"
+            value="true" />
     </feature>
     <allow-navigation href="cdvfile:*" />
     <feature name="FileTransfer">
@@ -34,5 +44,10 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <allow-intent href="market:*" />
-    <preference name="loglevel" value="DEBUG" />
+    <preference
+        name="loglevel"
+        value="DEBUG" />
+    <preference
+        name="Fullscreen"
+        value="true" />
 </widget>

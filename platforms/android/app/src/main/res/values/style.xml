@@ -3,6 +3,8 @@
 
     <style name="ActivityTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="ActivityThemeLunch" parent="@style/Theme.AppCompat.NoActionBar">

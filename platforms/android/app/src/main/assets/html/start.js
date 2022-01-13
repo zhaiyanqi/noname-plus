@@ -17,6 +17,14 @@
             console.log("jsBrige: " + window.jsBridge.getAssetPath());
         },
         openDB: function () {
+            if (lib.db) {
+                console.log("db is not close, close first");
+                lib.db.close(function() {
+                    lib.db = null;
+                    this.openDB();
+                });
+            }
+
             var request = window.indexedDB.open(lib.configprefix + 'data', 4);
             request.onupgradeneeded = function (e) {
                 var db = e.target.result;
@@ -45,6 +53,14 @@
         onJsInited: function () {
             console.log('onJsInited');
             window.jsBridge.onPageStarted();
+
+            this.getDB("recentIP", function (value) {
+                if (value) {
+                    window.jsBridge.onRecentIpsUpdate(value.toString());
+                } else {
+                    window.jsBridge.onRecentIpsUpdate(null);
+                }
+            });
         },
         getDB: function (key, callback) {
             if (!lib.db) {
@@ -73,6 +89,12 @@
                 }
             };
         },
+        closeDB: function() {
+            if (lib.db) {
+                lib.db.close();
+                lib.db = null;
+            }
+        },
         getExtensions: function () {
             this.getDB("extensions", function (value) {
                 if (value) {
@@ -95,7 +117,13 @@
         setServerIp: function (ip, directStart) {
             if (directStart) {
                 this.putDB('mode','connect', function() {
-                    app.setServerIp(ip, false);
+                    app.putDB('show_splash','off', function() {
+                        app.putDB("reconnect_info", null, function() {
+                            app.putDB("new_tutorial", true, function() {
+                                app.setServerIp(ip, false);
+                            });
+                        });
+                    });
                 });
             } else {
                 this.putDB("last_ip", ip, function() {

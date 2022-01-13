@@ -28,6 +28,7 @@ import com.widget.noname.cola.databinding.AssetFragmentData;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
+import com.widget.noname.cola.util.JavaPathUtil;
 import com.widget.noname.cola.util.JsPathUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -36,7 +37,10 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +69,8 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
     private static final String JS_TAG = "version_fragment";
     private static final String JS_FILE = "file:///android_asset/html/version_fragment.html";
 
+    @SuppressLint("SimpleDateFormat")
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
     private final AssetFragmentData data = new AssetFragmentData();
 
     private final AtomicInteger downloaded = new AtomicInteger();
@@ -158,8 +164,12 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                         data.setUpdateChangeLog(Arrays.toString(changeLog));
                     }
 
-                    data.setUpdateStatus(data.getVersion().compareTo(data.getUpdateVersion()) < 0 ?
-                            AssetFragmentData.STATUS_CLICK_UPDATE : AssetFragmentData.STATUS_NEWEST);
+                    if (data.getVersion() != null) {
+                        data.setUpdateStatus(data.getVersion().compareTo(data.getUpdateVersion()) < 0 ?
+                                AssetFragmentData.STATUS_CLICK_UPDATE : AssetFragmentData.STATUS_NEWEST);
+                    } else {
+                        data.setUpdateStatus(AssetFragmentData.STATUS_CLICK_UPDATE);
+                    }
                 }, throwable -> {
                     data.setUpdateVersion(throwable.getMessage());
                     data.setUpdateChangeLog(throwable.getMessage());
@@ -188,11 +198,30 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
                     .build();
             try (Response response = httpClient.newCall(request).execute()) {
                 String res = Objects.requireNonNull(response.body()).string();
-                Log.e("zyq", "res: " + res);
+
                 int index = res.indexOf("[");
                 int lastIdx = res.lastIndexOf("]");
 
                 if (index > -1 && lastIdx > -1) {
+                    String assetPath = data.getAssetPath();
+
+                    if (null == assetPath) {
+                        File root = JavaPathUtil.getAppRootFiles(getContext());
+
+                        if (null != root) {
+                            String folder = dateFormat.format(new Date());
+                            String destPath = root.getPath() + File.separator + folder;
+
+                            File file = new File(destPath);
+                            if (!file.exists() || !file.isDirectory()) {
+                                file.mkdirs();
+                            }
+
+                            MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, destPath);
+                            data.setAssetPath(destPath);
+                        }
+                    }
+
                     res = res.substring(index, lastIdx + 1);
                     JSONArray array = JSONArray.parseArray(res);
                     List<String> files = array.toJavaList(String.class);
@@ -278,8 +307,10 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
             int now = downloaded.getAndIncrement();
 
             if (now == allFiles) {
-                data.setDownloadProgress("下载完成： " + now + "/" + allFiles);
-                requireActivity().runOnUiThread(() -> webView.reload());
+                data.setDownloadProgress("");
+                requireActivity().runOnUiThread(() -> {
+                    webView.reload();
+                });
             } else {
                 data.setDownloadProgress(now + "/" + allFiles);
             }
@@ -380,9 +411,14 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
     public void onExtraZipFile(MsgVersionControl msg) {
 
         if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
+            webView.stopLoading();
             webView.clearCache(false);
+            webView.clearHistory();
+            webView.pauseTimers();
             webView.destroy();
+
             initWebView();
+            initData();
         }
     }
 

@@ -9,4 +9,6 @@ public interface OnJsBridgeCallback {
     void onServeIpSet();
 
     void onPageStarted();
+
+    void onRecentIpUpdate(String ips);
 }

@@ -43,6 +43,8 @@ public class MainActivity extends CordovaActivity {
         if (null == appView) {
             init();
             WebView view = (WebView) appView.getView();
+            view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            view.setOverScrollMode(View.OVER_SCROLL_NEVER);
             JsBridgeInterface jsBridgeInterface = new JsBridgeInterface(this, null);
             view.addJavascriptInterface(jsBridgeInterface, jsBridgeInterface.getCallTag());
         }

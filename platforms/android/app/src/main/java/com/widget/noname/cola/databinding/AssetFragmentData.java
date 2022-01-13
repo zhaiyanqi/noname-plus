@@ -34,6 +34,7 @@ public class AssetFragmentData extends BaseObservable {
         notifyPropertyChanged(BR.updateBtnStr);
     }
 
+    @Bindable
     public int getUpdateStatus() {
         return updateStatus;
     }
@@ -70,6 +71,8 @@ public class AssetFragmentData extends BaseObservable {
                 break;
             }
         }
+
+        notifyPropertyChanged(BR.updateStatus);
     }
 
     @Bindable

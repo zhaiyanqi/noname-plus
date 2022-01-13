@@ -5,13 +5,13 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Process;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,6 +24,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.alibaba.fastjson.JSON;
+import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.impl.ConfirmPopupView;
 import com.permissionx.guolindev.PermissionX;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
@@ -34,7 +37,7 @@ import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
-import com.widget.noname.cola.listener.ExtractAdapter;
+import com.widget.noname.cola.listener.ExtractListener;
 import com.widget.noname.cola.net.NonameWebSocketServer;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
@@ -46,11 +49,15 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback, RadioGroup.OnCheckedChangeListener {
+public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback,
+        RadioGroup.OnCheckedChangeListener, ExtractListener {
     private static final String TAG = "LaunchActivity";
 
     @SuppressLint("SimpleDateFormat")
@@ -65,7 +72,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private WaveLoadingView waveLoadingView = null;
     private int importChoice = -1;
     private ObjectAnimator waveViewAnimator = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +89,37 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         if ((null != intent) && Intent.ACTION_VIEW.equals(intent.getAction())) {
             Uri data = intent.getData();
             showSingleChoiceDialog(data);
+        } else {
+            String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+
+            if (null == path) {
+                askExtraDefaultFile();
+            }
         }
+    }
+
+    private void askExtraDefaultFile() {
+        boolean fileExist = FileUtil.isAssetFileExist(this, "noname.zip");
+
+        if (fileExist) {
+            new XPopup.Builder(this)
+                    .dismissOnBackPressed(false)
+                    .dismissOnTouchOutside(false)
+                    .asConfirm("资源目录不存在，是否导入内置资源包？", "", () -> {
+                        File root = JavaPathUtil.getAppRootFiles(LaunchActivity.this);
+                        String folder = dateFormat.format(new Date());
+                        extraAssetFile(root, folder);
+                    }).show();
+        }
+    }
+
+    private void extraAssetFile(File dest, String folder) {
+        waveLoadingView.setVisibility(View.VISIBLE);
+
+        MyApplication.getThreadPool().execute(() -> {
+            String asset = "noname.zip";
+            FileUtil.extractAssetToGame(this, asset, dest, folder, this);
+        });
     }
 
     private void initWaveView() {
@@ -139,12 +175,15 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 break;
             }
 
-            case MessageType.RESTART_WEB_VIEW: {
-                webView.removeAllViews();
-                webView.destroy();
-                webView.reload();
-                initWebView();
-                Toast.makeText(this, "版本切换完成", Toast.LENGTH_SHORT).show();
+            case MessageType.RESTART_APPLICATION: {
+                askToQuit();
+                break;
+            }
+
+            case MessageType.IMPORT_GAME_FILE: {
+                File root = JavaPathUtil.getAppRootFiles(LaunchActivity.this);
+                String folder = dateFormat.format(new Date());
+                extraAssetFile(root, folder);
                 break;
             }
         }
@@ -214,7 +253,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         singleChoiceDialog.setCancelable(false);
 
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
-
         String[] importChoices = null;
 
         if (!TextUtils.isEmpty(path)) {
@@ -249,12 +287,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
 
         singleChoiceDialog.setSingleChoiceItems(importChoices, 0, (dialog, which) -> importChoice = which);
-        singleChoiceDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        singleChoiceDialog.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
         singleChoiceDialog.show();
     }
 
@@ -288,6 +321,16 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                                     root.mkdirs();
                                 }
 
+                                File nomedia = new File(document.getAbsolutePath() + File.separator + "noname/.nomedia");
+
+                                if (!nomedia.exists() || !nomedia.isFile()) {
+                                    try {
+                                        nomedia.createNewFile();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
                                 String folder = dateFormat.format(new Date());
                                 unZipUri(uri, root, folder);
                             } else {
@@ -308,37 +351,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
         MyApplication.getThreadPool().execute(() -> {
 
-            FileUtil.extractUriToGame(this, uri, dest, folder, new ExtractAdapter() {
-
-                @Override
-                public void onExtractProgress(int progress) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(progress);
-                        waveLoadingView.setCenterTitle(String.valueOf(progress));
-                    });
-                }
-
-                @Override
-                public void onExtractDone() {
-
-                }
-
-                @Override
-                public void onExtractError() {
-                }
-
-                @Override
-                public void onExtractSaved(String path) {
-                    runOnUiThread(() -> {
-                        waveLoadingView.setProgressValue(100);
-                        waveLoadingView.setCenterTitle(String.valueOf(100));
-                        MsgVersionControl msg = new MsgVersionControl();
-                        msg.setMsgType(MsgVersionControl.MSG_TYPE_UPDATE_LIST);
-                        EventBus.getDefault().post(msg);
-                        hideWaveLoadingView();
-                    });
-                }
-            });
+            FileUtil.extractUriToGame(this, uri, dest, folder, this);
         });
     }
 
@@ -368,7 +381,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         bridgeHelper = new BridgeHelper(webView, this);
     }
 
-
     public void startGame(View view) {
         String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
 
@@ -385,6 +397,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         }
 
         startActivity(new Intent(this, MainActivity.class));
+        overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
     }
 
     @Override
@@ -418,6 +431,29 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     @Override
+    public void onRecentIpUpdate(String ips) {
+        if (null != ips) {
+            String[] split = ips.split(",");
+
+            if (null != split) {
+                List<String> ipList = new ArrayList<>();
+
+                for (String ip : split) {
+                    int index = ip.lastIndexOf(":8080");
+                    if (index > 0) {
+                        ip = ip.substring(0, index);
+                    }
+
+                    ipList.add(ip);
+                }
+
+                String json = JSON.toJSONString(ipList);
+                MMKV.defaultMMKV().encode(FileConstant.IP_LIST_KEY, json);
+            }
+        }
+    }
+
+    @Override
     public void onCheckedChanged(RadioGroup group, int id) {
         int pos = -1;
 
@@ -434,5 +470,60 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         if (pos >= 0) {
             viewPager.setCurrentItem(pos);
         }
+    }
+
+    @Override
+    public void onExtractProgress(int progress) {
+        runOnUiThread(() -> {
+            waveLoadingView.setProgressValue(progress);
+            waveLoadingView.setCenterTitle(String.valueOf(progress));
+        });
+    }
+
+    @Override
+    public void onExtractDone() {
+
+    }
+
+    @Override
+    public void onExtractError() {
+
+    }
+
+    @Override
+    public void onExtractCancel() {
+
+    }
+
+    @Override
+    public void onExtractSaved(String path) {
+        File file = new File(path);
+        List<File> gameInPath = FileUtil.findGameInPath(file);
+
+        if (gameInPath.size() > 0) {
+            MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, gameInPath.get(0).getPath());
+        }
+
+        runOnUiThread(() -> {
+            waveLoadingView.setProgressValue(100);
+            waveLoadingView.setCenterTitle(String.valueOf(100));
+            MsgVersionControl msg = new MsgVersionControl();
+            msg.setMsgType(MsgVersionControl.MSG_TYPE_UPDATE_LIST);
+            EventBus.getDefault().post(msg);
+            hideWaveLoadingView();
+            askToQuit();
+        });
+    }
+
+    private void askToQuit() {
+        XPopup.Builder builder = new XPopup.Builder(this);
+        builder.isClickThrough(false);
+        builder.dismissOnTouchOutside(false);
+        builder.dismissOnBackPressed(false);
+        ConfirmPopupView confirmPopupView = builder.asConfirm("提示", "需要重启才能生效", () -> {
+            Process.killProcess(Process.myPid());
+        });
+        confirmPopupView.isHideCancel = true;
+        confirmPopupView.show();
     }
 }

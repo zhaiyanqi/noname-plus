@@ -10,6 +10,8 @@
 
         <import type="android.widget.RadioGroup.OnCheckedChangeListener" />
 
+        <import type="android.view.View" />
+
         <variable
             name="data"
             type="com.widget.noname.cola.databinding.AssetFragmentData" />
@@ -86,6 +88,14 @@
                     android:layout_width="0dp"
                     android:layout_height="1dp"
                     android:layout_weight="1" />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onCheckedChanged="@{(compoundButton, checked) -> data.setUpdateStatus(checked ? AssetFragmentData.STATUS_CLICK_UPDATE : data.updateStatus)}"
+                    android:text="强制更新"
+                    android:checked="@{data.updateStatus != AssetFragmentData.STATUS_NEWEST}"
+                    android:visibility="@{data.updateStatus == AssetFragmentData.STATUS_NEWEST ? View.VISIBLE : View.GONE}" />
 
                 <TextView
                     style="@style/asset_fragment_text_style"

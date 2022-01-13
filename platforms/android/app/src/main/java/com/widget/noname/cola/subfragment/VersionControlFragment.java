@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.Process;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,12 +16,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.core.BasePopupView;
+import com.lxj.xpopup.impl.ConfirmPopupView;
 import com.permissionx.guolindev.PermissionX;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
@@ -50,9 +51,6 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class VersionControlFragment extends Fragment implements View.OnClickListener, VersionControlItemListener {
-
-    private static final String GAME_FOLDER = "game";
-    private static final String GAME_FILE = "game.js";
 
     private final DateFormat dateTimeFormat = SimpleDateFormat.getDateTimeInstance();
 
@@ -87,20 +85,19 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         String json = MMKV.defaultMMKV().decodeString(FileConstant.VERSION_LIST_KEY);
         JSONArray array = JSON.parseArray(json);
 
-
         if (array != null) {
             List<VersionData> lists = array.toJavaList(VersionData.class);
             adapter.replaceList(lists);
             loadingText.setVisibility(View.GONE);
         } else {
-            updateVersionList();
+            onClick(startButton);
         }
     }
 
     private void findAllGameFileInRootView(boolean includeSd) {
         MyApplication.getThreadPool().execute(() -> {
             File root = JavaPathUtil.getAppRoot(getContext());
-            List<File> list = new ArrayList<>(findGameInPath(root));
+            List<File> list = new ArrayList<>(FileUtil.findGameInPath(root));
 
             if (includeSd) {
                 File sd = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
@@ -112,15 +109,7 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                         noname.mkdirs();
                     }
 
-                    list.addAll(findGameInPath(noname));
-                }
-
-                String yuriPath = "/sdcard/Android/data/yuri.nakamura.noname_android";
-
-                File yuri = new File(yuriPath);
-
-                if (yuri.exists() && yuri.isDirectory()) {
-                    list.addAll(findGameInPath(yuri));
+                    list.addAll(FileUtil.findGameInPath(noname));
                 }
             }
 
@@ -142,65 +131,26 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
         });
     }
 
-    private List<File> findGameInPath(File root) {
-        ArrayList<File> list = new ArrayList<>();
-
-        if (checkIfGamePath(root)) {
-            list.add(root);
-        }
-
-        if (null != root) {
-            File[] files = root.listFiles();
-
-            if (null != files) {
-                for (File file : files) {
-                    if (checkIfGamePath(file)) {
-                        list.add(file);
-                    } else {
-                        list.addAll(findGameInPath(file));
-                    }
-                }
-            }
-        }
-
-        return list;
-    }
-
-    private boolean checkIfGamePath(File file) {
-        if (null != file) {
-            File[] gameFolders = file.listFiles(dir -> dir.isDirectory() && GAME_FOLDER.equals(dir.getName()));
-
-            if (null != gameFolders && gameFolders.length == 1) {
-                File gameFolder = gameFolders[0];
-                File[] gameJs = gameFolder.listFiles(f -> f.isFile() && GAME_FILE.equals(f.getName()));
-
-                return (null != gameJs) && (gameJs.length > 0);
-            }
-        }
-
-        return false;
-    }
-
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onExtraZipFile(MsgVersionControl msg) {
 
         if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
             updateVersionList();
         } else if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH) {
-            FragmentActivity activity = getActivity();
-
-            if (null != activity) {
-                activity.finish();
-            }
-
-            new Handler().postDelayed(() -> {
-                try {
-                    Process.killProcess(Process.myPid());
-                } catch (Exception ignored) {
-                }
-            }, 200);
+            askToQuit();
         }
+    }
+
+    private void askToQuit() {
+        XPopup.Builder builder = new XPopup.Builder(getContext());
+        builder.isClickThrough(false);
+        builder.dismissOnTouchOutside(false);
+        builder.dismissOnBackPressed(false);
+        ConfirmPopupView confirmPopupView = builder.asConfirm("提示", "需要重启才能生效", () -> {
+            Process.killProcess(Process.myPid());
+        });
+        confirmPopupView.isHideCancel = true;
+        confirmPopupView.show();
     }
 
     @Override
@@ -238,21 +188,34 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
 
         if (null != curPath) {
             FileUtil.backupWebContentToPath(getContext(), curPath, data.getPath());
-        }
 
-        MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
-        adapter.setCurrentPath(data.getPath());
-        data.setSelected(true);
-        adapter.notifyDataSetChanged();
+            MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
+            adapter.setCurrentPath(data.getPath());
+            data.setSelected(true);
+            adapter.notifyDataSetChanged();
+        } else {
+            MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, data.getPath());
+            adapter.setCurrentPath(data.getPath());
+            data.setSelected(true);
+            adapter.notifyDataSetChanged();
+
+            MsgVersionControl msg = new MsgVersionControl();
+            msg.setMsgType(MsgVersionControl.MSG_TYPE_CHANGE_ASSET_FINISH);
+            EventBus.getDefault().post(msg);
+        }
     }
 
     @Override
     public void onItemDelete(VersionData data) {
+        XPopup.Builder builder = new XPopup.Builder(getContext());
+        BasePopupView show = builder.dismissOnTouchOutside(false)
+                .dismissOnBackPressed(false)
+                .asLoading().show();
+
         Observable.create(emitter -> {
             try {
                 File file = new File(data.getPath());
                 delete(file);
-                updateVersionList();
                 emitter.onNext(true);
             } catch (Exception e) {
                 emitter.onError(e);
@@ -266,8 +229,13 @@ public class VersionControlFragment extends Fragment implements View.OnClickList
                         Toast.makeText(getContext(), "删除成功", Toast.LENGTH_SHORT).show();
                         MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, null);
                     }
+
+                    updateVersionList();
+                    show.smartDismiss();
                 }, throwable -> {
                     Toast.makeText(getContext(), "删除失败" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                    show.smartDismiss();
+                    throwable.printStackTrace();
                 });
     }
 

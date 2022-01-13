@@ -20,7 +20,10 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.lxj.xpopup.XPopup;
+import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.MyApplication;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.adapter.MessageRecyclerAdapter;
@@ -30,6 +33,7 @@ import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.listener.MessageAdapterListener;
 import com.widget.noname.cola.net.NonameWebSocketServer;
+import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.NetUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -79,12 +83,51 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
         startButton.setOnClickListener(this);
         messageRecyclerView = view.findViewById(R.id.message_recycler);
         adapter = new MessageRecyclerAdapter();
-        adapter.addMessage("点击启动按钮创建服务器");
+        initMessageAdapter();
         adapter.setListener(this);
 
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         messageRecyclerView.setLayoutManager(mLinearLayoutManager);
         messageRecyclerView.setAdapter(adapter);
+    }
+
+    private void initMessageAdapter() {
+        adapter.addMessage("点击启动按钮创建服务器, 也可以直接点击下方ip设置并开始游戏⬇️");
+        adapter.addMessage("可用服务器（下列地址点击可弹出菜单）");
+        adapter.addMessage(new MessageData("159.75.51.253", MessageData.TYPE_IP));
+        adapter.addMessage(new MessageData("47.99.105.222", MessageData.TYPE_IP));
+
+        MyApplication.getThreadPool().execute(() -> {
+            ClipboardManager cm = (ClipboardManager) MyApplication.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData primaryClip = cm.getPrimaryClip();
+            FragmentActivity activity = getActivity();
+            int itemCount = 0;
+
+            if (null != primaryClip) {
+                itemCount = primaryClip.getItemCount();
+            }
+
+            if ((itemCount > 0) && (null != activity)) {
+                ClipData.Item itemAt = primaryClip.getItemAt(itemCount - 1);
+                String ip = itemAt.getText().toString();
+
+                if (NetUtil.ipCheck(ip)) {
+                    addMessageToScreen("来自剪切板的ip：");
+                    addIpaddrToScreen(ip);
+                }
+            }
+
+            String json = MMKV.defaultMMKV().decodeString(FileConstant.IP_LIST_KEY);
+            JSONArray array = JSON.parseArray(json);
+
+            if (null != array && array.size() > 0) {
+
+                addMessageToScreen("最近连接：");
+                for (int i = 0; i < array.size(); i++) {
+                    addIpaddrToScreen(array.get(i).toString());
+                }
+            }
+        });
     }
 
     private void startLocalServer() {
@@ -112,7 +155,6 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
                         }
 
                         server = new NonameWebSocketServer(LocalServerFragment.SERVER_PORT);
-
                         server.setReuseAddr(true);
                         server.start();
                     }
@@ -163,6 +205,13 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
                 }
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        stopLocalServer();
     }
 
     private void addMessageToScreen(String msg) {

@@ -8,4 +8,7 @@ public interface FileConstant {
 
     String VERSION_LIST_KEY = "version_list_key";
 
+    String IP_LIST_KEY = "ip_list_key";
+
+    String INIT_GAME = "init_game_key";
 }

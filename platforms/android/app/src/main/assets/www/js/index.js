@@ -10,18 +10,19 @@
             this.url = window.jsBridge.getAssetPath();
             console.log("jsBridge.getAssetPath: " + this.url);
 
-            if (this.url) {
+            if (localStorage.getItem("noname_inited") != this.url) {
                 localStorage.setItem('noname_inited', this.url);
             }
         },
         start: function () {
             var url = this.url;
             var loadFailed = function () {
-                localStorage.removeItem('noname_inited');
                 window.location.reload();
             }
 
             var load = function (src, onload, onerror) {
+                console.log("load, src: " + src);
+
                 var script = document.createElement('script');
                 script.src = url + 'game/' + src + '.js';
                 script.onload = onload;
@@ -36,7 +37,6 @@
                     }, loadFailed);
                 }, loadFailed);
             }, loadFailed);
-            window.cordovaLoadTimeout = setTimeout(loadFailed, 5000);
         }
     };
 

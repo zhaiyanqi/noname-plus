@@ -58,6 +58,13 @@ public class JsBridgeInterface {
         }
     }
 
+    @JavascriptInterface
+    public void onRecentIpsUpdate(String value) {
+        if (null != jsBridgeCallback) {
+            jsBridgeCallback.onRecentIpUpdate(value);
+        }
+    }
+
     public String getCallTag() {
         return CALL_TAG;
     }

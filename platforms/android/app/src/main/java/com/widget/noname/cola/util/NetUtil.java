@@ -12,6 +12,10 @@ import java.util.List;
 public class NetUtil {
     private static final String FIX_QUOT = "\"";
     private static final String EMPTY = "";
+    private static final String IP_REGEX = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
+            + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+            + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+            + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
 
     public static String toJsonStr(String str) {
         if ((null != str) && !EMPTY.equals(str)) {
@@ -71,5 +75,13 @@ public class NetUtil {
         String[] result = new String[list.size()];
 
         return list.toArray(result);
+    }
+
+    public static boolean ipCheck(String text) {
+        if ((text != null) && !text.isEmpty()) {
+            return text.matches(IP_REGEX);
+        }
+
+        return false;
     }
 }

@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.widget.noname.cola"
     android:hardwareAccelerated="true"
-    android:versionCode="10000"
-    android:versionName="1.0.0">
+    android:versionCode="10002"
+    android:versionName="1.2.0">
 
     <supports-screens
         android:anyDensity="true"
@@ -48,6 +48,10 @@
                 <data
                     android:host="*"
                     android:mimeType="application/zip"
+                    android:scheme="content" />
+                <data
+                    android:host="*"
+                    android:mimeType="application/7z"
                     android:scheme="content" />
             </intent-filter>
         </activity>

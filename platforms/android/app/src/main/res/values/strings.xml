@@ -12,6 +12,7 @@
     <string name="btn_text_server_start">启</string>
     <string name="server_start">服务器启动中</string>
     <string name="import_gamer_asset">刷</string>
+    <string name="import_game_file">导入资源</string>
     <string name="github_info">项目地址：https://github.com/zhaiyanqi/noname-plus</string>
     <string name="help_info">
         项目地址：https://github.com/zhaiyanqi/noname-plus \n
