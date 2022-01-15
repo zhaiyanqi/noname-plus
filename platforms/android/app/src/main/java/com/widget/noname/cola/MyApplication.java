@@ -5,6 +5,9 @@ import android.content.Context;
 import android.graphics.Typeface;
 
 import com.tencent.mmkv.MMKV;
+import com.widget.noname.plus.common.webview.WebViewManager;
+
+import org.apache.cordova.engine.SystemWebViewManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,10 +22,13 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         context = this;
+        SystemWebViewManager.prepare(this);
+        WebViewManager.prepare(this);
         MMKV.initialize(this);
 
         typeface = Typeface.createFromAsset(getAssets(), "font/xinwei.ttf");
         threadPool = Executors.newFixedThreadPool(3);
+
     }
 
     public static Typeface getTypeface() {

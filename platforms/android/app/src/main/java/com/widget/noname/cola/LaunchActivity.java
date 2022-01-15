@@ -18,6 +18,7 @@ import android.view.WindowManager;
 import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -43,6 +44,7 @@ import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
 import com.widget.noname.cola.view.RedDotTextView;
 import com.widget.noname.plus.common.server.NonameWebSocketServer;
+import com.widget.noname.plus.common.webview.WebViewManager;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -377,8 +379,19 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void initWebView() {
-        webView = findViewById(R.id.web_view);
+//        webView = findViewById(R.id.web_view);
+        webView = WebViewManager.obtain(this);
+        RelativeLayout root = findViewById(R.id.root_view);
+        root.addView(webView, new RelativeLayout.LayoutParams(1, 1));
+
         bridgeHelper = new BridgeHelper(webView, this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        WebViewManager.recycle(webView);
     }
 
     public void startGame(View view) {

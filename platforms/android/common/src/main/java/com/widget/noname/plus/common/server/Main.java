@@ -20,7 +20,7 @@ public class Main {
             } catch (Exception ignored) {
             }
 
-            NonameWebSocketServer server = new NonameWebSocketServer(port, null);
+            NonameWebSocketServer server = new NonameWebSocketServer(port, System.out::println);
             server.setReuseAddr(true);
             server.setConnectionLostTimeout(timeout);
             server.start();

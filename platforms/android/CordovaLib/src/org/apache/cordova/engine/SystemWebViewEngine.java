@@ -20,13 +20,11 @@
 package org.apache.cordova.engine;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
-import android.os.Build;
 import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
@@ -43,9 +41,6 @@ import org.apache.cordova.ICordovaCookieManager;
 import org.apache.cordova.LOG;
 import org.apache.cordova.NativeToJsMessageQueue;
 import org.apache.cordova.PluginManager;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 
 /**
@@ -73,7 +68,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
 
     /** Used when created via reflection. */
     public SystemWebViewEngine(Context context, CordovaPreferences preferences) {
-        this(new SystemWebView(context), preferences);
+        this(SystemWebViewManager.obtain(context), preferences);
     }
 
     public SystemWebViewEngine(SystemWebView webView) {
@@ -310,7 +305,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
     @Override
     public void destroy() {
         webView.chromeClient.destroyLastDialog();
-        webView.destroy();
+//        webView.destroy();
         // unregister the receiver
         if (receiver != null) {
             try {
@@ -319,6 +314,8 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
                 LOG.e(TAG, "Error unregistering configuration receiver: " + e.getMessage(), e);
             }
         }
+
+        SystemWebViewManager.recycle(webView);
     }
 
     @Override

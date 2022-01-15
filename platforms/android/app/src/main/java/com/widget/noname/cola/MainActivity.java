@@ -55,6 +55,11 @@ public class MainActivity extends CordovaActivity {
     }
 
     @Override
+    public void setContentView(View view) {
+        super.setContentView(view);
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 

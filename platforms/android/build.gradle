@@ -41,6 +41,13 @@ allprojects {
         maven { url "https://oss.jfrog.org/libs-snapshot" }
     }
 
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.6.0'
+            force 'androidx.core:core-ktx:1.6.0'
+        }
+    }
+
     //This replaces project.properties w.r.t. build settings
     project.ext {
       defaultBuildToolsVersion="29.0.2" //String
