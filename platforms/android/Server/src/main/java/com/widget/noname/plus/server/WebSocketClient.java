@@ -1,7 +1,7 @@
-package com.widget.noname.plus.common.server;
+package com.widget.noname.plus.server;
 
 import com.alibaba.fastjson.JSONArray;
-import com.widget.noname.plus.common.server.pojo.Room;
+import com.widget.noname.plus.server.pojo.Room;
 
 import org.java_websocket.WebSocket;
 

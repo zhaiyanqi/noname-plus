@@ -1,4 +1,4 @@
-package com.widget.noname.plus.common.server;
+package com.widget.noname.plus.server;
 
 public interface ServerStatusListener {
 

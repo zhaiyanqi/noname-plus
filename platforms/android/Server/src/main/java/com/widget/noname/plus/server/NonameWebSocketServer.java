@@ -1,12 +1,12 @@
-package com.widget.noname.plus.common.server;
+package com.widget.noname.plus.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.widget.noname.plus.common.server.pojo.Config;
-import com.widget.noname.plus.common.server.pojo.Event;
-import com.widget.noname.plus.common.server.pojo.Room;
-import com.widget.noname.plus.common.server.util.ServerUtil;
-import com.widget.noname.plus.common.server.util.Util;
+import com.widget.noname.plus.server.pojo.Config;
+import com.widget.noname.plus.server.pojo.Event;
+import com.widget.noname.plus.server.pojo.Room;
+import com.widget.noname.plus.server.util.ServerUtil;
+import com.widget.noname.plus.server.util.Util;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;

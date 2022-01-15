@@ -1,4 +1,4 @@
-package com.widget.noname.plus.common.server.util;
+package com.widget.noname.plus.server.util;
 
 public class ServerUtil {
 

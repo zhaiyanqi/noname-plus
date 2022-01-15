@@ -1,4 +1,4 @@
-package com.widget.noname.plus.common.server.pojo;
+package com.widget.noname.plus.server.pojo;
 
 import java.util.ArrayList;
 

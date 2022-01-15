@@ -1,8 +1,8 @@
-package com.widget.noname.plus.common.server.util;
+package com.widget.noname.plus.server.util;
 
 import com.alibaba.fastjson.JSONArray;
-import com.widget.noname.plus.common.server.WebSocketClient;
-import com.widget.noname.plus.common.server.pojo.Room;
+import com.widget.noname.plus.server.WebSocketClient;
+import com.widget.noname.plus.server.pojo.Room;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
