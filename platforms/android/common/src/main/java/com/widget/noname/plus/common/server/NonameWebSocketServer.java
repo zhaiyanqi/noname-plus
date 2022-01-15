@@ -1,15 +1,13 @@
-package com.widget.noname.cola.net;
+package com.widget.noname.plus.common.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.widget.noname.cola.eventbus.MsgServerStatus;
-import com.widget.noname.pojo.Config;
-import com.widget.noname.pojo.Room;
-import com.widget.noname.server.nonameserver.pojo.Event;
-import com.widget.noname.server.nonameserver.util.ServerUtil;
-import com.widget.noname.server.nonameserver.util.Util;
+import com.widget.noname.plus.common.server.pojo.Config;
+import com.widget.noname.plus.common.server.pojo.Event;
+import com.widget.noname.plus.common.server.pojo.Room;
+import com.widget.noname.plus.common.server.util.ServerUtil;
+import com.widget.noname.plus.common.server.util.Util;
 
-import org.greenrobot.eventbus.EventBus;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -18,7 +16,6 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -53,7 +50,7 @@ public class NonameWebSocketServer extends WebSocketServer {
     private static final String MSG_TIME = "time";
     private static final String MSG_BAN = "ban";
     private static final String HEART_BEAT = "heartbeat";
-    private static final String SERVER = "com.widget.noname.plus.common.server";
+    private static final String SERVER = "com/widget/noname/plus/common/server";
     private static final String JOIN = "join";
     private static final String LEAVE = "leave";
 
@@ -148,7 +145,7 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     public void updateServerStatus(int status) {
-        EventBus.getDefault().post(new MsgServerStatus(status));
+        System.out.println("com.widget.noname.plus.common.server status: " + status);
     }
 
     /******************************* 内部方法 ********************************************/
@@ -372,15 +369,8 @@ public class NonameWebSocketServer extends WebSocketServer {
     private void updateEvents() {
         if (events.size() > 0) {
             long time = new Date().getTime();
-            Iterator<Event> iterator = events.iterator();
 
-            while (iterator.hasNext()) {
-                Event next = iterator.next();
-
-                if (next.getUtc() <= time) {
-                    iterator.remove();
-                }
-            }
+            events.removeIf(next -> next.getUtc() <= time);
         }
 
         Set<String> clientsKeys = clients.keySet();

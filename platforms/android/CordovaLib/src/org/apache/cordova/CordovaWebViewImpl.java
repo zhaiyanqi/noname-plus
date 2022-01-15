@@ -158,7 +158,7 @@ public class CordovaWebViewImpl implements CordovaWebView {
                 JSONObject data = new JSONObject();
                 try {
                     data.put("errorCode", -6);
-                    data.put("description", "The connection to the server was unsuccessful.");
+                    data.put("description", "The connection to the com.widget.noname.plus.common.server was unsuccessful.");
                     data.put("url", url);
                 } catch (JSONException e) {
                     // Will never happen.

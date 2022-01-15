@@ -18,25 +18,9 @@
 */
 package org.apache.cordova.filetransfer;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
+import android.net.Uri;
+import android.os.Build;
+import android.webkit.CookieManager;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -51,9 +35,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.net.Uri;
-import android.os.Build;
-import android.webkit.CookieManager;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
 
 public class FileTransfer extends CordovaPlugin {
 
@@ -95,7 +95,7 @@ public class FileTransfer extends CordovaPlugin {
     /**
      * Adds an interface method to an InputStream to return the number of bytes
      * read from the raw stream. This is used to track total progress against
-     * the HTTP Content-Length header value from the server.
+     * the HTTP Content-Length header value from the com.widget.noname.plus.common.server.
      */
     private static abstract class TrackingInputStream extends FilterInputStream {
       public TrackingInputStream(final InputStream in) {
@@ -253,16 +253,17 @@ public class FileTransfer extends CordovaPlugin {
     }
 
     /**
-     * Uploads the specified file to the server URL provided using an HTTP multipart request.
-     * @param source        Full path of the file on the file system
-     * @param target        URL of the server to receive the file
-     * @param args          JSON Array of args
-     * @param callbackContext    callback id for optional progress reports
+     * Uploads the specified file to the com.widget.noname.plus.common.server URL provided using an HTTP multipart request.
      *
-     * args[2] fileKey       Name of file request parameter
-     * args[3] fileName      File name to be used on server
-     * args[4] mimeType      Describes file content type
-     * args[5] params        key:value pairs of user-defined parameters
+     * @param source          Full path of the file on the file system
+     * @param target          URL of the com.widget.noname.plus.common.server to receive the file
+     * @param args            JSON Array of args
+     * @param callbackContext callback id for optional progress reports
+     *                        <p>
+     *                        args[2] fileKey       Name of file request parameter
+     *                        args[3] fileName      File name to be used on com.widget.noname.plus.common.server
+     *                        args[4] mimeType      Describes file content type
+     *                        args[5] params        key:value pairs of user-defined parameters
      * @return FileUploadResult containing result of upload request
      */
     private void upload(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -513,7 +514,7 @@ public class FileTransfer extends CordovaPlugin {
                         safeClose(inStream);
                     }
 
-                    LOG.d(LOG_TAG, "got response from server");
+                    LOG.d(LOG_TAG, "got response from com.widget.noname.plus.common.server");
                     LOG.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
 
                     // send request and retrieve response
@@ -654,7 +655,7 @@ public class FileTransfer extends CordovaPlugin {
     /**
      * Downloads a file form a given URL and saves it to the specified directory.
      *
-     * @param source        URL of the server to receive the file
+     * @param source        URL of the com.widget.noname.plus.common.server to receive the file
      * @param target            Full path of the file on the file system
      */
     private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -755,7 +756,7 @@ public class FileTransfer extends CordovaPlugin {
                         }
                         inputStream = new SimpleTrackingInputStream(readResult.inputStream);
                     } else {
-                        // connect to server
+                        // connect to com.widget.noname.plus.common.server
                         // Open a HTTP connection to the URL based on protocol
                         connection = resourceApi.createHttpConnection(sourceUri);
                         connection.setRequestMethod("GET");

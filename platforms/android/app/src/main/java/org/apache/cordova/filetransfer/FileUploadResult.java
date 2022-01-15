@@ -22,7 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Encapsulates the result and/or status of uploading a file to a remote server.
+ * Encapsulates the result and/or status of uploading a file to a remote com.widget.noname.plus.common.server.
  */
 public class FileUploadResult {
 

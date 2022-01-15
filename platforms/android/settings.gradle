@@ -2,3 +2,5 @@
 include ":"
 include ":CordovaLib"
 include ":app"
+include ':Common'
+include ':NonameUI'

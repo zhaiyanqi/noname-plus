@@ -1,8 +1,8 @@
-package com.widget.noname.server.nonameserver.util;
+package com.widget.noname.plus.common.server.util;
 
 import com.alibaba.fastjson.JSONArray;
-import com.widget.noname.cola.net.WebSocketClient;
-import com.widget.noname.pojo.Room;
+import com.widget.noname.plus.common.server.WebSocketClient;
+import com.widget.noname.plus.common.server.pojo.Room;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +23,7 @@ public class Util {
                 JSONArray array = new JSONArray();
 
                 if (room.isServerMode()) {
-                    array.add("com.widget.noname.plus.common.server");
+                    array.add("com/widget/noname/plus/common/server");
                 } else if (room.getOwner() != null && room.getConfig() != null) {
                     WebSocketClient owner = room.getOwner();
 

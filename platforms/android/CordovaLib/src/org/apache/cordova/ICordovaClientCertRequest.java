@@ -32,7 +32,7 @@ public interface ICordovaClientCertRequest {
     public void cancel();
 
     /*
-     * Returns the host name of the server requesting the certificate.
+     * Returns the host name of the com.widget.noname.plus.common.server requesting the certificate.
      */
     public String getHost();
 
@@ -42,7 +42,7 @@ public interface ICordovaClientCertRequest {
     public String[] getKeyTypes();
 
     /*
-     * Returns the port number of the server requesting the certificate.
+     * Returns the port number of the com.widget.noname.plus.common.server requesting the certificate.
      */
     public int getPort();
 
