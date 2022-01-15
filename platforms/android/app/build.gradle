@@ -41,7 +41,7 @@ buildscript {
         }
 
         // Change the version to be used.
-        ext.kotlin_version = gradlePluginKotlinVersion
+//        ext.kotlin_version = gradlePluginKotlinVersion
     }
 
     repositories {
@@ -54,7 +54,7 @@ buildscript {
     dependencies {
         apply from: '../CordovaLib/cordova.gradle'
 
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.0.2'
 
         if (cdvHelpers.getConfigPreference('GradlePluginKotlinEnabled', 'false').toBoolean()) {
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -239,7 +239,7 @@ android {
         applicationId privateHelpers.extractStringFromManifest("package")
 
         if (cdvMinSdkVersion != null) {
-            minSdkVersion cdvMinSdkVersion
+            minSdkVersion 24
         }
 
         if (cdvMaxSdkVersion != null) {
@@ -247,7 +247,7 @@ android {
         }
 
         if(cdvTargetSdkVersion != null) {
-            targetSdkVersion cdvTargetSdkVersion
+            targetSdkVersion 30
         }
     }
 
@@ -255,8 +255,8 @@ android {
       abortOnError false;
     }
 
-    compileSdkVersion cdvCompileSdkVersion
-    buildToolsVersion cdvBuildToolsVersion
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
 
     // This code exists for Crosswalk and other Native APIs.
     // By default, we multiply the existing version code in the
@@ -343,6 +343,13 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.6.0'
+        force 'androidx.core:core-ktx:1.6.0'
+    }
+}
+
 /*
  * WARNING: Cordova Lib and platform scripts do management inside of this code here,
  * if you are adding the dependencies manually, do so outside the comments, otherwise
@@ -359,6 +366,8 @@ dependencies {
 
     // SUB-PROJECT DEPENDENCIES START
     implementation(project(path: ":CordovaLib"))
+    implementation project(":Common")
+
 //    implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
     // SUB-PROJECT DEPENDENCIES END
@@ -403,6 +412,7 @@ dependencies {
 
     implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
     implementation 'com.hzy:un7zip:1.7.1'
+    implementation "androidx.core:core-ktx:1.3.2"
 }
 
 def promptForReleaseKeyPassword() {

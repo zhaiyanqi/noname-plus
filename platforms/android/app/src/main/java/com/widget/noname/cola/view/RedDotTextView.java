@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatTextView;
 
 import com.widget.noname.cola.R;
-import com.widget.noname.cola.net.NonameWebSocketServer;
+import com.widget.noname.plus.common.server.NonameWebSocketServer;
 
 public class RedDotTextView extends AppCompatTextView {
     private static final int[] SERVER_STATE_SET_RUNNING = {R.attr.state_server_running};

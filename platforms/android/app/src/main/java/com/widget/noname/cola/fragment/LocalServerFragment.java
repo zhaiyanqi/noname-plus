@@ -32,9 +32,9 @@ import com.widget.noname.cola.data.MessageType;
 import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.listener.MessageAdapterListener;
-import com.widget.noname.cola.net.NonameWebSocketServer;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.NetUtil;
+import com.widget.noname.plus.common.server.NonameWebSocketServer;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -154,7 +154,8 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
                             }
                         }
 
-                        server = new NonameWebSocketServer(LocalServerFragment.SERVER_PORT);
+                        server = new NonameWebSocketServer(LocalServerFragment.SERVER_PORT,
+                                status -> EventBus.getDefault().post(new MsgServerStatus(status)));
                         server.setReuseAddr(true);
                         server.start();
                     }

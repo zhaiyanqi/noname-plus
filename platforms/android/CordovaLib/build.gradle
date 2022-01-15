@@ -62,8 +62,8 @@ group = 'org.apache.cordova'
 version = '9.1.0'
 
 android {
-    compileSdkVersion cdvCompileSdkVersion
-    buildToolsVersion cdvBuildToolsVersion
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -72,7 +72,7 @@ android {
 
     // For the Android Cordova Lib, we allow changing the minSdkVersion, but it is at the users own risk
     defaultConfig {
-        minSdkVersion cdvMinSdkVersion
+        minSdkVersion 24
     }
 
     sourceSets {

@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -50,7 +51,7 @@ public class NonameWebSocketServer extends WebSocketServer {
     private static final String MSG_TIME = "time";
     private static final String MSG_BAN = "ban";
     private static final String HEART_BEAT = "heartbeat";
-    private static final String SERVER = "com/widget/noname/plus/common/server";
+    private static final String SERVER = "com.widget.noname.plus.common.server";
     private static final String JOIN = "join";
     private static final String LEAVE = "leave";
 
@@ -73,8 +74,11 @@ public class NonameWebSocketServer extends WebSocketServer {
 
     private static final Timer timer = new Timer();
 
-    public NonameWebSocketServer(int port) throws UnknownHostException {
+    private ServerStatusListener listener = null;
+
+    public NonameWebSocketServer(int port, ServerStatusListener listener) throws UnknownHostException {
         super(new InetSocketAddress(port));
+        this.listener = listener;
     }
 
     public NonameWebSocketServer(InetSocketAddress address) {
@@ -145,7 +149,9 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     public void updateServerStatus(int status) {
-        System.out.println("com.widget.noname.plus.common.server status: " + status);
+        if (null != listener) {
+            listener.onServerStatusChanged(status);
+        }
     }
 
     /******************************* 内部方法 ********************************************/
@@ -369,8 +375,15 @@ public class NonameWebSocketServer extends WebSocketServer {
     private void updateEvents() {
         if (events.size() > 0) {
             long time = new Date().getTime();
+            Iterator<Event> iterator = events.iterator();
 
-            events.removeIf(next -> next.getUtc() <= time);
+            while (iterator.hasNext()) {
+                Event next = iterator.next();
+
+                if (next.getUtc() <= time) {
+                    iterator.remove();
+                }
+            }
         }
 
         Set<String> clientsKeys = clients.keySet();
