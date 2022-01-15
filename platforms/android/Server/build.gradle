@@ -40,34 +40,17 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:1.7.32")
 }
 
-//def zipFile = file('build/output/server.jar')//指定build生成的jar的路径
-//task makeJar(type: Jar) {//生成不含dex的jar
-//    archiveName = 'server.jar'
-//    //如果之前存在，则先删除'
-//    mkdir('build/output/')
-//    delete 'build/output/server.jar'
-//    //设置拷贝的文件
-//    from zipTree(zipFile)
-//    manifest { attributes 'Main-Class': 'com.widget.noname.plus.server.Main' }
-//}
-//
-//makeJar.dependsOn(build)//执行makeJar的时候会在之前执行build
-
-def _BASENAME = "TestJar";
-def _VERSION = "_V1.0";
-def _DestinationPath = "build"; //生成jar包的位置
-def zipFile = file('build/intermediates/bundles/default/classes.jar'); //待打包文件位置
-
-task deleteBuild(type:Delete){
-    delete _DestinationPath + _BASENAME + _VERSION + ".jar"
+task clearJar(type: Delete) {
+    delete 'build/libs/mySdk.jar'////这行表示如果你已经打过一次包了，再进行打包则把原来的包删掉
 }
 
-task makeJar(type:Jar){
-    from zipTree(zipFile)
-    from fileTree(dir:'src/main',includes:['assets/**']) //将assets目录打入jar包
-    baseName = _BASENAME + _VERSION
-    destinationDir = file(_DestinationPath)
+
+task fatJar(type: Jar) {
     manifest { attributes 'Main-Class': 'com.widget.noname.plus.server.Main' }
+    setArchivesBaseName(project.name)
+
+    //collect all dependencies
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
-makeJar.dependsOn(deleteBuild, build)
+fatJar.dependsOn(build)

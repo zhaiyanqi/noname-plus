@@ -41,6 +41,7 @@ public class SystemWebView extends WebView implements CordovaWebViewEngine.Engin
 
     public SystemWebView(Context context) {
         this(context, null);
+        setBackgroundColor(0);
     }
 
     public SystemWebView(Context context, AttributeSet attrs) {

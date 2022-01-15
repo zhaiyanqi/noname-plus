@@ -68,7 +68,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
 
     /** Used when created via reflection. */
     public SystemWebViewEngine(Context context, CordovaPreferences preferences) {
-        this(SystemWebViewManager.obtain(context), preferences);
+        this(new SystemWebView(context), preferences);
     }
 
     public SystemWebViewEngine(SystemWebView webView) {
@@ -305,7 +305,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
     @Override
     public void destroy() {
         webView.chromeClient.destroyLastDialog();
-//        webView.destroy();
+        webView.destroy();
         // unregister the receiver
         if (receiver != null) {
             try {
@@ -315,7 +315,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
             }
         }
 
-        SystemWebViewManager.recycle(webView);
+//        SystemWebViewManager.recycle(webView);
     }
 
     @Override

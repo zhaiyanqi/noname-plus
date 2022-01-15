@@ -115,6 +115,8 @@
             this.putDB(key, enable);
         },
         setServerIp: function (ip, directStart) {
+            console.log("setServerIp, ip: " + ip + ", directStart: " + directStart);
+
             if (directStart) {
                 this.putDB('mode','connect', function() {
                     app.putDB('show_splash','off', function() {
