@@ -63,6 +63,26 @@ public class WebViewManager {
         }
     }
 
+    public static void destroy(WebView webView) {
+        try {
+            webView.stopLoading();
+            webView.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
+            webView.clearHistory();
+            webView.pauseTimers();
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            ViewParent parent = webView.getParent();
+
+            if (parent != null) {
+                ((ViewGroup) parent).removeView(webView);
+            }
+            webView.removeAllViews();
+            webView.destroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void destroy() {
         try {
             webViewCache.forEach(it -> {

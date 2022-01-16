@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 public class MyApplication extends Application {
 
     private static Typeface typeface = null;
+    private static Typeface typefaceXingKai = null;
     private static ExecutorService threadPool = null;
     private static Context context = null;
 

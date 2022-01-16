@@ -8,4 +8,5 @@
     <dimen name="lunch_layout_view_pager_margin_start">20dp</dimen>
     <dimen name="lunch_layout_height">23dp</dimen>
     <dimen name="lunch_layout_button_width">120dp</dimen>
+    <dimen name="n_button_size">90dp</dimen>
 </resources>

@@ -3,7 +3,9 @@ package com.widget.noname.cola;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -14,13 +16,15 @@ import android.os.Environment;
 import android.os.Process;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
@@ -38,29 +42,39 @@ import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
+import com.widget.noname.cola.function.FunctionBean;
+import com.widget.noname.cola.function.FunctionManager;
 import com.widget.noname.cola.listener.ExtractListener;
 import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
 import com.widget.noname.cola.view.RedDotTextView;
+import com.widget.noname.plus.common.animation.AnimatorUtil;
+import com.widget.noname.plus.common.function.BaseFunction;
 import com.widget.noname.plus.common.webview.WebViewManager;
+import com.widget.noname.plus.nonameui.NButton;
 import com.widget.noname.plus.server.NonameWebSocketServer;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback,
-        RadioGroup.OnCheckedChangeListener, ExtractListener {
-    private static final String TAG = "LaunchActivity";
+        RadioGroup.OnCheckedChangeListener, ExtractListener, View.OnClickListener {
+
+    private FunctionManager functionManager = null;
 
     @SuppressLint("SimpleDateFormat")
     private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -75,29 +89,85 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private int importChoice = -1;
     private ObjectAnimator waveViewAnimator = null;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_launch);
-        hideSystemUI();
-        initWebView();
-        initViewPager();
-        initWaveView();
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_launch);
+//        hideSystemUI();
+//        initWebView();
+//        initViewPager();
+//        initWaveView();
+//
+//        serverStatusView = findViewById(R.id.server_status_red_dot);
+//
+//        Intent intent = getIntent();
+//
+//        if ((null != intent) && Intent.ACTION_VIEW.equals(intent.getAction())) {
+//            Uri data = intent.getData();
+//            showSingleChoiceDialog(data);
+//        } else {
+//            String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+//
+//            if (null == path) {
+//                askExtraDefaultFile();
+//            }
+//        }
+//    }
 
-        serverStatusView = findViewById(R.id.server_status_red_dot);
 
-        Intent intent = getIntent();
+    private BaseFunction currentFunction = null;
+    private ViewGroup functionContainer = null;
+    private ViewGroup lunchViewContainer = null;
 
-        if ((null != intent) && Intent.ACTION_VIEW.equals(intent.getAction())) {
-            Uri data = intent.getData();
-            showSingleChoiceDialog(data);
-        } else {
-            String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+    private final View.OnClickListener functionButtonListener = v -> {
+        if (v instanceof NButton) {
+            String buttonText = ((NButton) v).getButtonText();
 
-            if (null == path) {
-                askExtraDefaultFile();
+            boolean changed = functionManager.checkToSwitch(buttonText);
+
+            if (changed) {
+                showFunctionContainer();
             }
         }
+    };
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_launch2);
+
+        functionContainer = findViewById(R.id.function_container);
+        lunchViewContainer = findViewById(R.id.main_view);
+
+        initFunctions();
+    }
+
+    private void initFunctions() {
+        InputStream stream = getResources().openRawResource(R.raw.function_config);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        StringBuilder jsonStr = new StringBuilder();
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                jsonStr.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        LinearLayout linearLayout = findViewById(R.id.function_buttons);
+        List<FunctionBean> functions = JSON.parseArray(jsonStr.toString(), FunctionBean.class);
+
+        functions.forEach(f -> {
+            NButton button = new NButton(this);
+            button.setButtonText(f.getName());
+            button.setOnClickListener(functionButtonListener);
+            int size = getResources().getDimensionPixelSize(R.dimen.n_button_size);
+            linearLayout.addView(button, new LinearLayout.LayoutParams(size, size));
+        });
+
+        functionManager = new FunctionManager(functionContainer, functions);
     }
 
     private void askExtraDefaultFile() {
@@ -113,6 +183,166 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                         extraAssetFile(root, folder);
                     }).show();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        initWebView();
+
+        if (null != functionManager) {
+            functionManager.onResume();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (null != currentFunction) {
+            hideFunctionContainer();
+            currentFunction = null;
+            return;
+        }
+
+        super.onBackPressed();
+    }
+
+    private AnimatorSet funcContainerHideAnim = null;
+    private AnimatorSet funcContainerShowAnim = null;
+
+    private void hideFunctionContainer() {
+        if (null != funcContainerShowAnim && funcContainerShowAnim.isStarted()) {
+            funcContainerShowAnim.cancel();
+        }
+
+        if (null == funcContainerHideAnim) {
+            funcContainerHideAnim = new AnimatorSet();
+
+            ValueAnimator alphaAnimator = AnimatorUtil.getAlphaAnimator(1f, 0.2f, 300);
+            alphaAnimator.addUpdateListener(animation -> {
+                if (null != functionContainer) {
+                    functionContainer.setAlpha((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator scaleAnimator = AnimatorUtil.getScaleAnimator(1f, 0.0f);
+            scaleAnimator.addUpdateListener(animation -> {
+                if (null != functionContainer) {
+                    functionContainer.setScaleX((float) animation.getAnimatedValue());
+                    functionContainer.setScaleY((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(0.2f, 1f);
+            alphaAnimator1.addUpdateListener(animation -> {
+                if (null != lunchViewContainer) {
+                    lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator scaleAnimator1 = AnimatorUtil.getScaleAnimator(0.8f, 1f);
+            scaleAnimator1.addUpdateListener(animation -> {
+                if (null != lunchViewContainer) {
+                    lunchViewContainer.setScaleX((float) animation.getAnimatedValue());
+                    lunchViewContainer.setScaleY((float) animation.getAnimatedValue());
+                }
+            });
+
+            funcContainerHideAnim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    functionContainer.setVisibility(View.VISIBLE);
+                    lunchViewContainer.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    functionContainer.setVisibility(View.GONE);
+                }
+            });
+
+            funcContainerHideAnim.play(alphaAnimator)
+                    .with(scaleAnimator)
+                    .with(alphaAnimator1)
+                    .with(scaleAnimator1);
+            keepAnimator(funcContainerHideAnim);
+        }
+
+        funcContainerHideAnim.start();
+    }
+
+    private void showFunctionContainer() {
+        if (null != funcContainerHideAnim && funcContainerHideAnim.isStarted()) {
+            funcContainerHideAnim.cancel();
+        }
+
+        if (null == funcContainerShowAnim) {
+            funcContainerShowAnim = new AnimatorSet();
+
+            ValueAnimator alphaAnimator = AnimatorUtil.getAlphaAnimator(0.2f, 1f);
+            alphaAnimator.addUpdateListener(animation -> {
+                if (null != functionContainer) {
+                    functionContainer.setAlpha((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator scaleAnimator = AnimatorUtil.getScaleAnimator(0.5f, 1f);
+            scaleAnimator.addUpdateListener(animation -> {
+                if (null != functionContainer) {
+                    functionContainer.setScaleX((float) animation.getAnimatedValue());
+                    functionContainer.setScaleY((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(1f, 0.2f);
+            alphaAnimator1.addUpdateListener(animation -> {
+                if (null != lunchViewContainer) {
+                    lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
+                }
+            });
+
+            ValueAnimator scaleAnimator1 = AnimatorUtil.getScaleAnimator(1f, 0.8f);
+            scaleAnimator1.addUpdateListener(animation -> {
+                if (null != lunchViewContainer) {
+                    lunchViewContainer.setScaleX((float) animation.getAnimatedValue());
+                    lunchViewContainer.setScaleY((float) animation.getAnimatedValue());
+                }
+            });
+
+            funcContainerShowAnim.play(alphaAnimator)
+                    .with(scaleAnimator)
+                    .with(alphaAnimator1)
+                    .with(scaleAnimator1);
+
+            funcContainerShowAnim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    functionContainer.setVisibility(View.VISIBLE);
+                    lunchViewContainer.setVisibility(View.VISIBLE);
+                    lunchViewContainer.setEnabled(false);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    functionContainer.setVisibility(View.VISIBLE);
+                }
+            });
+            keepAnimator(funcContainerShowAnim);
+        }
+
+        funcContainerShowAnim.start();
+    }
+
+    private final CopyOnWriteArrayList<Animator> animatorsHolder = new CopyOnWriteArrayList<>();
+
+    private void keepAnimator(Animator animator) {
+        animatorsHolder.add(animator);
+    }
+
+    @Override
+    protected void onPause() {
+        WebViewManager.destroy(webView);
+        super.onPause();
     }
 
     private void extraAssetFile(File dest, String folder) {
@@ -379,9 +609,9 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void initWebView() {
-        webView = WebViewManager.obtain(this);
+        webView = new WebView(this);
         webView.setVisibility(View.INVISIBLE);
-        RelativeLayout root = findViewById(R.id.root_view);
+        ViewGroup root = findViewById(R.id.root_view);
         root.addView(webView);
 
         bridgeHelper = new BridgeHelper(webView, this);
@@ -389,9 +619,17 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        WebViewManager.destroy(webView);
+        animatorsHolder.forEach(Animator::cancel);
+        animatorsHolder.clear();
 
-        WebViewManager.recycle(webView);
+        super.onDestroy();
+    }
+
+    public void onServerClick(View view) {
+
+
+        showFunctionContainer();
     }
 
     public void startGame(View view) {
@@ -538,5 +776,10 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         });
         confirmPopupView.isHideCancel = true;
         confirmPopupView.show();
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 }
