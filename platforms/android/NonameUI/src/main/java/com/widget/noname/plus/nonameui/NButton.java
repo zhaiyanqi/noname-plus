@@ -2,8 +2,8 @@ package com.widget.noname.plus.nonameui;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Typeface;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,13 +15,13 @@ import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatImageView;
 
 public class NButton extends RelativeLayout {
-    private static final int BG_COLOR_BLUR = 0;
-    private static final int BG_COLOR_GREED = 1;
-    private static final int BG_COLOR_GREY = 2;
-    private static final int BG_COLOR_ORANGE = 3;
-    private static final int BG_COLOR_PURPLE = 4;
-    private static final int BG_COLOR_RED = 5;
-    private static final int BG_COLOR_YELLOW = 6;
+    private static final String BG_COLOR_BLUR = "blue";
+    private static final String BG_COLOR_GREEN = "green";
+    private static final String BG_COLOR_GREY = "grey";
+    private static final String BG_COLOR_ORANGE = "orange";
+    private static final String BG_COLOR_PURPLE = "purple";
+    private static final String BG_COLOR_RED = "red";
+    private static final String BG_COLOR_YELLOW = "yellow";
 
     private final PathInterpolator alphaInterpolator = new PathInterpolator(0.33f, 0f, 0.67f, 1f);
 
@@ -32,7 +32,6 @@ public class NButton extends RelativeLayout {
     private ValueAnimator upAnimator = null;
     private AppCompatImageView captionBg = null;
     private String buttonText = null;
-    private int captionColor = 0;
 
     public NButton(Context context) {
         this(context, null);
@@ -44,12 +43,6 @@ public class NButton extends RelativeLayout {
 
     public NButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.NButton);
-
-        buttonText = ta.getString(R.styleable.NButton_text);
-        captionColor = ta.getInt(R.styleable.NButton_caption_color, 0);
-        ta.recycle();
-
         init();
     }
 
@@ -75,7 +68,6 @@ public class NButton extends RelativeLayout {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.nbutton_layout, this);
         Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "font/xingkai.ttf");
 
-
         firstText = view.findViewById(R.id.text_lt);
         secondText = view.findViewById(R.id.text_rb);
 
@@ -85,23 +77,23 @@ public class NButton extends RelativeLayout {
         }
 
         setButtonText(buttonText);
-
         captionBg = view.findViewById(R.id.caption_bg);
-
-        if (null != captionBg) {
-            setCaptionBg(captionColor);
-        }
+        setCaptionColor(BG_COLOR_ORANGE);
     }
 
-    private void setCaptionBg(int captionColor) {
+    public void setCaptionColor(String captionColor) {
         System.out.println("zyq: " + captionColor);
+
+        if ((null == captionBg) || TextUtils.isEmpty(captionColor)) {
+            return;
+        }
 
         switch (captionColor) {
             case BG_COLOR_BLUR: {
                 captionBg.setBackgroundResource(R.drawable.button_blue);
                 break;
             }
-            case BG_COLOR_GREED: {
+            case BG_COLOR_GREEN: {
                 captionBg.setBackgroundResource(R.drawable.button_green);
                 break;
             }
@@ -132,8 +124,6 @@ public class NButton extends RelativeLayout {
     public boolean onTouchEvent(MotionEvent event) {
 
         if (null != captionBg && isEnabled()) {
-            super.onTouchEvent(event);
-
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
                     executeDownAnimation();
@@ -150,7 +140,7 @@ public class NButton extends RelativeLayout {
                 }
             }
 
-            return false;
+            return super.onTouchEvent(event);
         }
 
         return super.onTouchEvent(event);

@@ -1,6 +1,5 @@
 package com.widget.noname.cola.adapter;
 
-import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_ABOUT;
 import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_EXT_MANAGER;
 import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_LOCAL_SERVER;
 import static com.widget.noname.cola.fragment.PagerHelper.FRAGMENT_VERSION_CONTROL;
@@ -10,7 +9,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.widget.noname.cola.fragment.AboutFragment;
 import com.widget.noname.cola.fragment.EmptyFragment;
 import com.widget.noname.cola.fragment.ExtManageFragment;
 import com.widget.noname.cola.fragment.LocalServerFragment;
@@ -49,10 +47,6 @@ public class LaunchViewPagerAdapter extends FragmentStateAdapter {
             }
             case FRAGMENT_LOCAL_SERVER: {
                 fragment = new LocalServerFragment();
-                break;
-            }
-            case FRAGMENT_ABOUT: {
-                fragment = new AboutFragment();
                 break;
             }
             default:

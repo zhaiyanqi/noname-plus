@@ -120,12 +120,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private ViewGroup lunchViewContainer = null;
 
     private final View.OnClickListener functionButtonListener = v -> {
+
+
         if (v instanceof NButton) {
+
             String buttonText = ((NButton) v).getButtonText();
+            boolean checked = functionManager.checkToSwitch(buttonText);
 
-            boolean changed = functionManager.checkToSwitch(buttonText);
-
-            if (changed) {
+            if (checked) {
                 showFunctionContainer();
             }
         }
@@ -162,12 +164,13 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         functions.forEach(f -> {
             NButton button = new NButton(this);
             button.setButtonText(f.getName());
+            button.setCaptionColor(f.getColor());
             button.setOnClickListener(functionButtonListener);
             int size = getResources().getDimensionPixelSize(R.dimen.n_button_size);
             linearLayout.addView(button, new LinearLayout.LayoutParams(size, size));
         });
 
-        functionManager = new FunctionManager(functionContainer, functions);
+        functionManager = new FunctionManager(this, functionContainer, functions);
     }
 
     private void askExtraDefaultFile() {
@@ -198,9 +201,8 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     @Override
     public void onBackPressed() {
-        if (null != currentFunction) {
+        if (functionManager.onBackPressed()) {
             hideFunctionContainer();
-            currentFunction = null;
             return;
         }
 
@@ -233,7 +235,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 }
             });
 
-            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(0.2f, 1f);
+            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(0.1f, 1f);
             alphaAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
@@ -294,7 +296,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 }
             });
 
-            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(1f, 0.2f);
+            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(1f, 0.1f);
             alphaAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
@@ -379,7 +381,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_VERSION_CONTROL);
 //        pagerAdapter.addFragment(PagerHelper.FRAGMENT_EXT_MANAGER);
         pagerAdapter.addFragment(PagerHelper.FRAGMENT_LOCAL_SERVER);
-        pagerAdapter.addFragment(PagerHelper.FRAGMENT_ABOUT);
 
         viewPager.setAdapter(pagerAdapter);
         radioGroup.check(R.id.button_version_control);
@@ -714,8 +715,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_EXT_MANAGER);
         } else if (id == R.id.button_local_server) {
             pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_LOCAL_SERVER);
-        } else if (id == R.id.button_about) {
-            pos = pagerAdapter.getItemPosition(PagerHelper.FRAGMENT_ABOUT);
         }
 
         if (pos >= 0) {

@@ -1,22 +1,12 @@
 [
   {
     "name": "版本",
+    "color": "green",
     "path": "com.widget.noname.plus.function.version.FunctionVersion"
   },
   {
     "name": "关于",
-    "path": "com.widget.noname.plus.function.version.FunctionVersion"
-  },
-  {
-    "name": "关于",
-    "path": "com.widget.noname.plus.function.version.FunctionVersion"
-  },
-  {
-    "name": "关于",
-    "path": "com.widget.noname.plus.function.version.FunctionVersion"
-  },
-  {
-    "name": "关于",
-    "path": "com.widget.noname.plus.function.version.FunctionVersion"
+    "color": "blue",
+    "path": "com.widget.noname.plus.function.about.FunctionAbout"
   }
 ]
