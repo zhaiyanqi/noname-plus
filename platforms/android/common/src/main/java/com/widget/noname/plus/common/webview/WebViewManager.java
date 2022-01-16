@@ -15,12 +15,12 @@ public class WebViewManager {
 
     public static WebView create(Context context) {
         WebView webView = new WebView(context);
-        // todo
         return webView;
     }
 
     public static WebView obtain(Context context) {
         if (webViewCache.isEmpty()) {
+            webViewCache.add(create(new MutableContextWrapper(context)));
             webViewCache.add(create(new MutableContextWrapper(context)));
         }
 

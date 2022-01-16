@@ -93,10 +93,10 @@
         android:background="@drawable/fragment_view_background"
         android:orientation="vertical" />
 
-    <WebView
-        android:id="@+id/web_view"
-        android:layout_width="1px"
-        android:layout_height="1px" />
+    <!--    <WebView-->
+    <!--        android:id="@+id/web_view"-->
+    <!--        android:layout_width="1px"-->
+    <!--        android:layout_height="1px" />-->
 
     <com.widget.noname.cola.WaveLoadingView
         android:id="@+id/wave_loading_view"
