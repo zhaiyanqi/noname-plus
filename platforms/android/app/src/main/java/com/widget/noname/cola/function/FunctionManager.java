@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FunctionManager {
-
+    private static final String FUNCTION_PACKAGE = "com.widget.noname.plus.function.";
     private final ConcurrentHashMap<String, BaseFunction> functionMap = new ConcurrentHashMap<>();
 
     private final ViewGroup container;
@@ -27,7 +27,7 @@ public class FunctionManager {
 
     private void initFunctions(List<FunctionBean> functions) {
         functions.forEach(f -> {
-            BaseFunction o = newInstance(f.getPath());
+            BaseFunction o = newInstance(FUNCTION_PACKAGE + f.getPath());
 
             if (o != null) {
                 o.setContainer(container);
@@ -64,14 +64,18 @@ public class FunctionManager {
 
         if (null != baseFunction) {
             View view = baseFunction.obtainView();
+            boolean hasView = baseFunction.hasView();
 
-            if (view != null) {
+            if ((view != null) && hasView) {
                 Optional.ofNullable(currentFunction).ifPresent(BaseFunction::onRecycle);
 
                 currentFunction = baseFunction;
                 currentFunction.onCreate();
                 replaceFunctionContainer(view);
                 return true;
+            } else if (!hasView) {
+                baseFunction.onClick();
+                return false;
             }
         }
 

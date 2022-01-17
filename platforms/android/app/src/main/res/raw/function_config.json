@@ -1,12 +1,22 @@
 [
   {
+    "name": "开始",
+    "color": "orange",
+    "path": "FunctionGameShell"
+  },
+  {
     "name": "版本",
     "color": "green",
-    "path": "com.widget.noname.plus.function.version.FunctionVersion"
+    "path": "FunctionVersion"
+  },
+  {
+    "name": "联机",
+    "color": "red",
+    "path": "FunctionServer"
   },
   {
     "name": "关于",
     "color": "blue",
-    "path": "com.widget.noname.plus.function.about.FunctionAbout"
+    "path": "FunctionAbout"
   }
 ]

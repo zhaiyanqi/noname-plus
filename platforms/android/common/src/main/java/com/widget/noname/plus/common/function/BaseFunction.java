@@ -59,6 +59,10 @@ public abstract class BaseFunction {
         return true;
     }
 
+    public void onClick() {
+
+    }
+
     protected Context getContext() {
         return context;
     }

@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function;
+package com.widget.nonam.plus.function;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,15 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.widget.noname.plus.common.function.BaseFunction;
-import com.widget.noname.plus.server.R;
 
-public class FunctionServer extends BaseFunction {
-    public FunctionServer(@NonNull Context context) {
+public class FunctionAbout extends BaseFunction {
+
+    public FunctionAbout(@NonNull Context context) {
         super(context);
     }
 
     @Override
     public View onCreateView(Context context, @Nullable ViewGroup container) {
-        return LayoutInflater.from(context).inflate(R.layout.function_server, container, false);
+        return LayoutInflater.from(context).inflate(R.layout.function_about, container, false);
     }
 }
