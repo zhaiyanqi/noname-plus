@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.about;
+package com.widget.noname.plus.function.plus;
 
 import static org.junit.Assert.assertEquals;
 

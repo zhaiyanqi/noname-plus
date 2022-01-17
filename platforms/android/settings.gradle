@@ -4,6 +4,6 @@ include ":CordovaLib"
 include ":app"
 include ':Common'
 include ':NonameUI'
-include ':Server'
+include ':FunctionServer'
 include ':FunctionVersion'
 include ':FunctionAbout'
