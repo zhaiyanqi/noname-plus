@@ -32,9 +32,9 @@ import com.widget.noname.cola.adapter.VersionListRecyclerAdapter;
 import com.widget.noname.cola.data.VersionData;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.listener.VersionControlItemListener;
-import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
+import com.widget.noname.plus.common.util.FileConstant;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;

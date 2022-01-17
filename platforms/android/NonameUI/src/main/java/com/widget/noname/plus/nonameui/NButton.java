@@ -82,8 +82,6 @@ public class NButton extends RelativeLayout {
     }
 
     public void setCaptionColor(String captionColor) {
-        System.out.println("zyq: " + captionColor);
-
         if ((null == captionBg) || TextUtils.isEmpty(captionColor)) {
             return;
         }
@@ -122,7 +120,6 @@ public class NButton extends RelativeLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         if (null != captionBg && isEnabled()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {

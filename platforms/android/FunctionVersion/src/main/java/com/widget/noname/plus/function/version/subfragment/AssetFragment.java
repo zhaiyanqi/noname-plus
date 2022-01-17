@@ -1,4 +1,4 @@
-package com.widget.noname.cola.subfragment;
+package com.widget.noname.plus.function.version.subfragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -19,21 +19,14 @@ import androidx.fragment.app.Fragment;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.lxj.xpopup.XPopup;
 import com.tencent.mmkv.MMKV;
-import com.widget.noname.cola.MyApplication;
-import com.widget.noname.cola.R;
-import com.widget.noname.cola.data.UpdateInfo;
-import com.widget.noname.cola.databinding.AssetFragmentData;
-import com.widget.noname.cola.eventbus.MsgVersionControl;
-import com.widget.noname.cola.util.FileUtil;
-import com.widget.noname.cola.util.JavaPathUtil;
-import com.widget.noname.cola.util.JsPathUtil;
+import com.widget.noname.cola.subfragment.AssetFragmentBinding;
 import com.widget.noname.plus.common.util.FileConstant;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+import com.widget.noname.plus.common.util.JavaPathUtil;
+import com.widget.noname.plus.common.util.JsPathUtil;
+import com.widget.noname.plus.function.version.R;
+import com.widget.noname.plus.function.version.UpdateInfo;
+import com.widget.noname.plus.function.version.databinding.AssetFragmentData;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +76,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         AssetFragmentBinding binding = AssetFragmentBinding.inflate(inflater);
-        binding.setData(data);
+//        binding.setData(data);
         return binding.getRoot();
     }
 
@@ -113,10 +106,10 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
         data.setUpdateUri(url);
 
         if (null != path) {
-            Observable.create(emitter -> emitter.onNext(FileUtil.getFileSize(new File(path))))
-                    .subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(size -> data.setAssetSize(size.toString()));
+//            Observable.create(emitter -> emitter.onNext(FileUtil.getFileSize(new File(path))))
+//                    .subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(size -> data.setAssetSize(size.toString()));
         }
     }
 
@@ -184,9 +177,9 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
             String title = "有新版本" + data.getUpdateVersion() + "可用，是否下载？";
             String info = data.getUpdateChangeLog();
 
-            new XPopup.Builder(getContext())
-                    .isViewMode(true)
-                    .asConfirm(title, info, this::goUpdate).show();
+//            new XPopup.Builder(getContext())
+//                    .isViewMode(true)
+//                    .asConfirm(title, info, this::goUpdate).show();
         }
     }
 
@@ -368,19 +361,19 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
 
     @JavascriptInterface
     public void onResourceLoad(String json) {
-        Observable.create(emitter -> {
-            UpdateInfo updateInfo = JSON.parseObject(json, UpdateInfo.class);
-
-            if (null != updateInfo) {
-                emitter.onNext(updateInfo.getVersion());
-            }
-        }).subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(version -> {
-                    Log.e("zyq", "update version: " + version);
-                    data.setVersion(version.toString());
-                    updateVersionInfo(data.getUpdateUri());
-                });
+//        Observable.create(emitter -> {
+//            UpdateInfo updateInfo = JSON.parseObject(json, UpdateInfo.class);
+//
+//            if (null != updateInfo) {
+//                emitter.onNext(updateInfo.getVersion());
+//            }
+//        }).subscribeOn(Schedulers.from(MyApplication.getThreadPool()))
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(version -> {
+//                    Log.e("zyq", "update version: " + version);
+//                    data.setVersion(version.toString());
+//                    updateVersionInfo(data.getUpdateUri());
+//                });
     }
 
     @Override
@@ -407,31 +400,31 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onExtraZipFile(MsgVersionControl msg) {
-
-        if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
-            webView.stopLoading();
-            webView.clearCache(false);
-            webView.clearHistory();
-            webView.pauseTimers();
-            webView.destroy();
-
-            initWebView();
-            initData();
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onExtraZipFile(MsgVersionControl msg) {
+//
+//        if (msg.getMsgType() == MsgVersionControl.MSG_TYPE_UPDATE_LIST) {
+//            webView.stopLoading();
+//            webView.clearCache(false);
+//            webView.clearHistory();
+//            webView.pauseTimers();
+//            webView.destroy();
+//
+//            initWebView();
+//            initData();
+//        }
+//    }
+//
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        EventBus.getDefault().register(this);
+//    }
+//
+//    @Override
+//    public void onStop() {
+//        super.onStop();
+//        EventBus.getDefault().unregister(this);
+//    }
 }
 

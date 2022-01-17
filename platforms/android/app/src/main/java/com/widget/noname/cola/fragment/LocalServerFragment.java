@@ -32,8 +32,8 @@ import com.widget.noname.cola.data.MessageType;
 import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.listener.MessageAdapterListener;
-import com.widget.noname.cola.util.FileConstant;
 import com.widget.noname.cola.util.NetUtil;
+import com.widget.noname.plus.common.util.FileConstant;
 import com.widget.noname.plus.server.NonameWebSocketServer;
 
 import org.greenrobot.eventbus.EventBus;

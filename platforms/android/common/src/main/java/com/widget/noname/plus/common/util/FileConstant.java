@@ -1,4 +1,4 @@
-package com.widget.noname.cola.util;
+package com.widget.noname.plus.common.util;
 
 public interface FileConstant {
 

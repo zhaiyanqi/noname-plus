@@ -1,10 +1,9 @@
-package com.widget.noname.cola.util;
+package com.widget.noname.plus.common.util;
 
 import android.content.Context;
 import android.net.Uri;
 
 import com.tencent.mmkv.MMKV;
-import com.widget.noname.plus.common.util.FileConstant;
 
 import java.io.File;
 

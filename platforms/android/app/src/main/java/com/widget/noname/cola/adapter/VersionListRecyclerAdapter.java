@@ -16,7 +16,7 @@ import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.R;
 import com.widget.noname.cola.data.VersionData;
 import com.widget.noname.cola.listener.VersionControlItemListener;
-import com.widget.noname.cola.util.FileConstant;
+import com.widget.noname.plus.common.util.FileConstant;
 
 import java.util.ArrayList;
 import java.util.List;
