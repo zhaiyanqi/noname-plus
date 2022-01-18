@@ -40,6 +40,13 @@ dependencies {
     implementation 'org.java-websocket:Java-WebSocket:1.5.2'
     implementation("com.alibaba:fastjson:1.2.79")
     implementation("org.slf4j:slf4j-simple:1.7.32")
+
+    implementation 'com.github.li-xiaojun:XPopup:2.7.5'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+
+    // mmkv
+    implementation 'com.tencent:mmkv:1.2.11'
+
 }
 
 task clearJar(type: Delete) {

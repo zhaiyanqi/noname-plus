@@ -171,6 +171,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         });
 
         functionManager = new FunctionManager(this, functionContainer, functions);
+        functionManager.onCreate();
     }
 
     private void askExtraDefaultFile() {

@@ -32,7 +32,6 @@ public abstract class BaseFunction {
     }
 
     public void onCreate() {
-        isAlive = true;
     }
 
     public void onPause() {
@@ -43,12 +42,21 @@ public abstract class BaseFunction {
         isPause = false;
     }
 
-    public void onRecycle() {
+    public void onInit() {
+        isAlive = true;
+    }
+
+    public void onDeInit() {
         isAlive = false;
 
         if (null != view) {
             Optional.ofNullable(view.getParent()).ifPresent(p -> ((ViewGroup) p).removeView(view));
         }
+    }
+
+    public void onRecycle() {
+
+
     }
 
     public void onDestroy() {

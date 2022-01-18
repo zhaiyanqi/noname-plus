@@ -63,20 +63,24 @@ public class FunctionManager {
         BaseFunction baseFunction = functionMap.get(functionName);
 
         if (null != baseFunction) {
-            View view = baseFunction.obtainView();
             boolean hasView = baseFunction.hasView();
 
-            if ((view != null) && hasView) {
-                Optional.ofNullable(currentFunction).ifPresent(BaseFunction::onRecycle);
+            if (hasView) {
+                View view = baseFunction.obtainView();
 
-                currentFunction = baseFunction;
-                currentFunction.onCreate();
-                replaceFunctionContainer(view);
-                return true;
-            } else if (!hasView) {
+                if (view != null) {
+                    Optional.ofNullable(currentFunction).ifPresent(BaseFunction::onDeInit);
+                    currentFunction = baseFunction;
+                    currentFunction.onInit();
+                    replaceFunctionContainer(view);
+                    return true;
+                }
+
+            } else {
                 baseFunction.onClick();
-                return false;
             }
+
+            return false;
         }
 
         return false;
