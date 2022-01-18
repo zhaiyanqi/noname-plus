@@ -49,7 +49,7 @@ public class MainActivity extends CordovaActivity {
             view.addJavascriptInterface(jsBridgeInterface, jsBridgeInterface.getCallTag());
         }
 
-        // Set by <content src="index.html" /> in config.xml
+        // Set by <content src="index.js" /> in config.xml
         loadUrl(launchUrl);
         hideSystemUI();
     }

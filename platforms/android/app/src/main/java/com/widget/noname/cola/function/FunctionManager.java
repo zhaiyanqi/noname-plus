@@ -93,12 +93,11 @@ public class FunctionManager {
 
     public boolean onBackPressed() {
         if (null != currentFunction) {
-            currentFunction.onRecycle();
+            currentFunction.onDeInit();
             currentFunction = null;
 
             return true;
         }
-
 
         return false;
     }

@@ -6,7 +6,7 @@ import android.webkit.JavascriptInterface;
 import com.widget.noname.cola.util.JsPathUtil;
 
 public class JsBridgeInterface {
-    public static final String ROOT_URI = "file:///android_asset/html/start.html";
+    public static final String ROOT_URI = "file:///android_asset/js/start.js";
     private static final String CALL_TAG = "jsBridge";
 
     private static final String CONFIG_PREFIX = "noname_0.9_";

@@ -6,9 +6,12 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -25,6 +28,7 @@ import com.tencent.mmkv.MMKV;
 import com.widget.noname.plus.common.function.BaseFunction;
 import com.widget.noname.plus.common.manager.FontManager;
 import com.widget.noname.plus.common.manager.ThreadManager;
+import com.widget.noname.plus.common.manager.WebViewManager;
 import com.widget.noname.plus.common.util.FileConstant;
 import com.widget.noname.plus.common.util.NetUtil;
 import com.widget.noname.plus.server.NonameWebSocketServer;
@@ -34,6 +38,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 
 public class FunctionServer extends BaseFunction implements View.OnClickListener, MessageAdapterListener {
+    private static final String ROOT_URI = "file:///android_asset/js/start.html";
+    private static final String JS_TAG = "jsBridge";
+
     private static final int MSG_UPDATE_SERVER_IPADDR = 1;
     private static final int MSG_UPDATE_SERVER_START = 2;
     private static final int MSG_UPDATE_SCREEN_MESSAGE = 3;
@@ -50,6 +57,8 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
     private MessageRecyclerAdapter adapter = null;
     private int serverStatus = NonameWebSocketServer.SERVER_TYPE_STOP;
 
+    private WebView webView = null;
+
     public FunctionServer(@NonNull Context context) {
         super(context);
 
@@ -59,7 +68,33 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
     @Override
     public void onCreate() {
         super.onCreate();
+    }
 
+    @Override
+    public void onInit() {
+        super.onInit();
+
+        webView = WebViewManager.obtain(getContext());
+        WebViewManager.addMinWebViewToContainer(getContainer(), webView);
+        WebViewManager.initWebview(webView, ROOT_URI, new Object() {
+            @JavascriptInterface
+            public void onServeIpSet() {
+                Log.e("zyq", "onServeIpSet");
+            }
+
+            @JavascriptInterface
+            public void onRecentIpsUpdate(String value) {
+                Log.e("zyq", "onRecentIpsUpdate: value: " + value);
+            }
+        }, JS_TAG);
+    }
+
+    @Override
+    public void onDeInit() {
+        WebViewManager.destroy(webView);
+        webView = null;
+
+        super.onDeInit();
     }
 
     @Override

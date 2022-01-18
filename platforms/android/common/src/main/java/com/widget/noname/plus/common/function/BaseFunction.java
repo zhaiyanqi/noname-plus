@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -42,6 +43,7 @@ public abstract class BaseFunction {
         isPause = false;
     }
 
+    @CallSuper
     public void onInit() {
         isAlive = true;
     }
@@ -52,11 +54,6 @@ public abstract class BaseFunction {
         if (null != view) {
             Optional.ofNullable(view.getParent()).ifPresent(p -> ((ViewGroup) p).removeView(view));
         }
-    }
-
-    public void onRecycle() {
-
-
     }
 
     public void onDestroy() {

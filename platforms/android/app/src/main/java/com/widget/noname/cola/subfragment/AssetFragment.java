@@ -67,7 +67,7 @@ public class AssetFragment extends Fragment implements RadioGroup.OnCheckedChang
     public static final String UPDATE_URL_CODING = "https://nakamurayuri.coding.net/p/noname/d/noname/git/raw/master";
 
     private static final String JS_TAG = "version_fragment";
-    private static final String JS_FILE = "file:///android_asset/html/version_fragment.html";
+    private static final String JS_FILE = "file:///android_asset/js/version_fragment.js";
 
     @SuppressLint("SimpleDateFormat")
     private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
