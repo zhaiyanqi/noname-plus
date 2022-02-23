@@ -49,4 +49,14 @@
         android:background="@drawable/function_container_background"
         android:focusable="true" />
 
+    <TextView
+        android:id="@+id/text_app_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#f1f1f1"
+        NButton:layout_constraintEnd_toEndOf="parent"
+        NButton:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="5dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

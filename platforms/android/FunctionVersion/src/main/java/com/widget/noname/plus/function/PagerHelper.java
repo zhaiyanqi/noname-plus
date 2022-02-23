@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version;
+package com.widget.noname.plus.function;
 
 public class PagerHelper {
     public static final String FRAGMENT_VERSION_CONTROL = "version_control";

@@ -8,6 +8,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -38,7 +40,6 @@ import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
 import com.widget.noname.cola.bridge.BridgeHelper;
 import com.widget.noname.cola.bridge.OnJsBridgeCallback;
 import com.widget.noname.cola.data.MessageType;
-import com.widget.noname.cola.eventbus.MsgServerStatus;
 import com.widget.noname.cola.eventbus.MsgToActivity;
 import com.widget.noname.cola.eventbus.MsgVersionControl;
 import com.widget.noname.cola.fragment.PagerHelper;
@@ -47,13 +48,11 @@ import com.widget.noname.cola.function.FunctionManager;
 import com.widget.noname.cola.listener.ExtractListener;
 import com.widget.noname.cola.util.FileUtil;
 import com.widget.noname.cola.util.JavaPathUtil;
-import com.widget.noname.cola.view.RedDotTextView;
 import com.widget.noname.plus.common.animation.AnimatorUtil;
 import com.widget.noname.plus.common.function.BaseFunction;
 import com.widget.noname.plus.common.manager.WebViewManager;
 import com.widget.noname.plus.common.util.FileConstant;
 import com.widget.noname.plus.nonameui.NButton;
-import com.widget.noname.plus.server.NonameWebSocketServer;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -83,7 +82,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private RadioGroup radioGroup = null;
     private ViewPager2 viewPager = null;
     private LaunchViewPagerAdapter pagerAdapter = null;
-    private RedDotTextView serverStatusView = null;
     private WebView webView = null;
     private WaveLoadingView waveLoadingView = null;
     private int importChoice = -1;
@@ -139,6 +137,21 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
         functionContainer = findViewById(R.id.function_container);
         lunchViewContainer = findViewById(R.id.main_view);
+
+        findViewById(R.id.root_view).setOnClickListener(v -> {
+            if ((null != functionManager) && functionManager.onBackPressed()) {
+                hideFunctionContainer();
+            }
+        });
+
+        try {
+            TextView versionText = findViewById(R.id.text_app_version);
+            String pkName = getPackageName();
+            String versionName = "版本: " + getPackageManager().getPackageInfo(pkName, 0).versionName;
+            versionText.setText(versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         initFunctions();
     }
@@ -200,7 +213,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     @Override
     public void onBackPressed() {
-        if (functionManager.onBackPressed()) {
+        if ((null != functionManager) && functionManager.onBackPressed()) {
             hideFunctionContainer();
             return;
         }
@@ -219,14 +232,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         if (null == funcContainerHideAnim) {
             funcContainerHideAnim = new AnimatorSet();
 
-            ValueAnimator alphaAnimator = AnimatorUtil.getAlphaAnimator(1f, 0.2f, 300);
+            ValueAnimator alphaAnimator = AnimatorUtil.ofAlpha(1f, 0.2f, 300);
             alphaAnimator.addUpdateListener(animation -> {
                 if (null != functionContainer) {
                     functionContainer.setAlpha((float) animation.getAnimatedValue());
                 }
             });
 
-            ValueAnimator scaleAnimator = AnimatorUtil.getScaleAnimator(1f, 0.0f);
+            ValueAnimator scaleAnimator = AnimatorUtil.ofScale(1f, 0.0f);
             scaleAnimator.addUpdateListener(animation -> {
                 if (null != functionContainer) {
                     functionContainer.setScaleX((float) animation.getAnimatedValue());
@@ -234,14 +247,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 }
             });
 
-            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(0.1f, 1f);
+            ValueAnimator alphaAnimator1 = AnimatorUtil.ofAlpha(0.1f, 1f);
             alphaAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
                 }
             });
 
-            ValueAnimator scaleAnimator1 = AnimatorUtil.getScaleAnimator(0.8f, 1f);
+            ValueAnimator scaleAnimator1 = AnimatorUtil.ofScale(0.8f, 1f);
             scaleAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setScaleX((float) animation.getAnimatedValue());
@@ -280,14 +293,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         if (null == funcContainerShowAnim) {
             funcContainerShowAnim = new AnimatorSet();
 
-            ValueAnimator alphaAnimator = AnimatorUtil.getAlphaAnimator(0.2f, 1f);
+            ValueAnimator alphaAnimator = AnimatorUtil.ofAlpha(0.2f, 1f);
             alphaAnimator.addUpdateListener(animation -> {
                 if (null != functionContainer) {
                     functionContainer.setAlpha((float) animation.getAnimatedValue());
                 }
             });
 
-            ValueAnimator scaleAnimator = AnimatorUtil.getScaleAnimator(0.5f, 1f);
+            ValueAnimator scaleAnimator = AnimatorUtil.ofScale(0.5f, 1f);
             scaleAnimator.addUpdateListener(animation -> {
                 if (null != functionContainer) {
                     functionContainer.setScaleX((float) animation.getAnimatedValue());
@@ -295,14 +308,14 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 }
             });
 
-            ValueAnimator alphaAnimator1 = AnimatorUtil.getAlphaAnimator(1f, 0.1f);
+            ValueAnimator alphaAnimator1 = AnimatorUtil.ofAlpha(1f, 0.1f);
             alphaAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setAlpha((float) animation.getAnimatedValue());
                 }
             });
 
-            ValueAnimator scaleAnimator1 = AnimatorUtil.getScaleAnimator(1f, 0.8f);
+            ValueAnimator scaleAnimator1 = AnimatorUtil.ofScale(1f, 0.8f);
             scaleAnimator1.addUpdateListener(animation -> {
                 if (null != lunchViewContainer) {
                     lunchViewContainer.setScaleX((float) animation.getAnimatedValue());
@@ -419,33 +432,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                 break;
             }
         }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onServerStatusChange(MsgServerStatus msg) {
-        switch (msg.getStatus()) {
-            case NonameWebSocketServer.SERVER_TYPE_START: {
-                serverStatusView.setText(R.string.server_start);
-                break;
-            }
-            case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
-                serverStatusView.setText(R.string.server_running);
-                break;
-            }
-            case NonameWebSocketServer.SERVER_TYPE_CLOSE: {
-                serverStatusView.setText(R.string.server_close);
-                break;
-            }
-            case NonameWebSocketServer.SERVER_TYPE_ERROR: {
-                serverStatusView.setText(R.string.server_error);
-                break;
-            }
-            case NonameWebSocketServer.SERVER_TYPE_STOP: {
-                serverStatusView.setText(R.string.server_stop);
-                break;
-            }
-        }
-        serverStatusView.setStatus(msg.getStatus());
     }
 
     @Override

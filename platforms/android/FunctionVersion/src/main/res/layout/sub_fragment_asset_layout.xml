@@ -4,9 +4,9 @@
 
     <data class="com.widget.noname.cola.subfragment.AssetFragmentBinding">
 
-        <import type="com.widget.noname.plus.function.version.subfragment.AssetFragment" />
+        <import type="com.widget.noname.plus.function.subfragment.AssetFragment" />
 
-        <import type="com.widget.noname.plus.function.version.databinding.AssetFragmentData" />
+        <import type="com.widget.noname.plus.function.databinding.AssetFragmentData" />
 
         <import type="android.widget.RadioGroup.OnCheckedChangeListener" />
 
@@ -14,7 +14,7 @@
 
         <variable
             name="data"
-            type="com.widget.noname.plus.function.version.databinding.AssetFragmentData" />
+            type="com.widget.noname.plus.function.databinding.AssetFragmentData" />
     </data>
 
     <LinearLayout

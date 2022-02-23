@@ -1,15 +1,15 @@
-package com.widget.noname.plus.function.version;
+package com.widget.noname.plus.function;
 
-import static com.widget.noname.plus.function.version.PagerHelper.SUB_FRAGMENT_ASSET;
-import static com.widget.noname.plus.function.version.PagerHelper.SUB_FRAGMENT_VERSION;
+import static com.widget.noname.plus.function.PagerHelper.SUB_FRAGMENT_ASSET;
+import static com.widget.noname.plus.function.PagerHelper.SUB_FRAGMENT_VERSION;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.widget.noname.plus.function.version.subfragment.AssetFragment;
-import com.widget.noname.plus.function.version.subfragment.VersionControlFragment;
+import com.widget.noname.plus.function.subfragment.AssetFragment;
+import com.widget.noname.plus.function.subfragment.VersionControlFragment;
 
 import java.util.ArrayList;
 import java.util.List;

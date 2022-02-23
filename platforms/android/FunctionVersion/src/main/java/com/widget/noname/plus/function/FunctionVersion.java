@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version;
+package com.widget.noname.plus.function;
 
 import android.content.Context;
 import android.graphics.Paint;
@@ -16,6 +16,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.widget.noname.plus.common.function.BaseFunction;
 import com.widget.noname.plus.common.util.FileUtil;
+import com.widget.noname.plus.function.version.R;
 
 public class FunctionVersion extends BaseFunction {
     public FunctionVersion(@NonNull Context context) {

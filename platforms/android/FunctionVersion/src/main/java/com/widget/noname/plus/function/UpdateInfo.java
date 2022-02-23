@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version;
+package com.widget.noname.plus.function;
 
 import java.util.Arrays;
 

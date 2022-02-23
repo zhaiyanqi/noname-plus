@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version.subfragment;
+package com.widget.noname.plus.function.subfragment;
 
 import android.os.Bundle;
 import android.view.View;

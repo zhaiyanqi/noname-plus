@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version.databinding;
+package com.widget.noname.plus.function.databinding;
 
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;

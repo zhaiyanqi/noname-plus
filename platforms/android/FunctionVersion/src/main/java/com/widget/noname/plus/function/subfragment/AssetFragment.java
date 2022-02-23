@@ -1,4 +1,4 @@
-package com.widget.noname.plus.function.version.subfragment;
+package com.widget.noname.plus.function.subfragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -24,9 +24,9 @@ import com.widget.noname.cola.subfragment.AssetFragmentBinding;
 import com.widget.noname.plus.common.util.FileConstant;
 import com.widget.noname.plus.common.util.JavaPathUtil;
 import com.widget.noname.plus.common.util.JsPathUtil;
+import com.widget.noname.plus.function.UpdateInfo;
+import com.widget.noname.plus.function.databinding.AssetFragmentData;
 import com.widget.noname.plus.function.version.R;
-import com.widget.noname.plus.function.version.UpdateInfo;
-import com.widget.noname.plus.function.version.databinding.AssetFragmentData;
 
 import java.io.File;
 import java.io.IOException;
