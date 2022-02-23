@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_text_server_end">终</string>
+    <string name="btn_text_server_start">启</string>
+
+    <string name="server_start">服务器启动中</string>
+    <string name="server_running">服务器运行中</string>
+    <string name="server_close">服务器关闭</string>
+    <string name="server_error">服务器错误</string>
+    <string name="server_stop">服务器终止</string>
+</resources>

@@ -10,11 +10,27 @@
         android:id="@+id/message_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="20dp"
+        android:layout_margin="40dp"
+        android:layout_marginTop="40dp"
         android:fadingEdge="vertical"
         android:orientation="vertical"
         android:overScrollMode="never"
         android:requiresFadingEdge="vertical" />
+
+    <com.widget.noname.plus.function.RedDotTextView
+        android:id="@+id/server_status_red_dot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="40dp"
+        android:drawableStart="@drawable/running_dot"
+        android:drawablePadding="2dp"
+        android:gravity="center"
+        android:text="本地服务器未运行"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/start_server_button"

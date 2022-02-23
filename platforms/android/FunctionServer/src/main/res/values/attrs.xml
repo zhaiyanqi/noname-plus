@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="state_server_running" format="boolean" />
+    <attr name="state_server_stop" format="boolean" />
+    <attr name="state_server_close" format="boolean" />
+    <attr name="state_server_error" format="boolean" />
+</resources>

@@ -49,10 +49,11 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
 
     private static final Object serverLock = new Object();
 
-    private NonameWebSocketServer server = null;
+    private static NonameWebSocketServer server = null;
     private Handler handler = null;
 
     private Button startButton = null;
+    private RedDotTextView serverStatusView = null;
     private RecyclerView messageRecyclerView = null;
     private MessageRecyclerAdapter adapter = null;
     private int serverStatus = NonameWebSocketServer.SERVER_TYPE_STOP;
@@ -117,6 +118,8 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         messageRecyclerView.setLayoutManager(mLinearLayoutManager);
         messageRecyclerView.setAdapter(adapter);
+
+        serverStatusView = view.findViewById(R.id.server_status_red_dot);
     }
 
     private void initMessageAdapter() {
@@ -182,7 +185,7 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
                             }
                         }
 
-                        server = new NonameWebSocketServer(8080, status -> System.out.println("server: " + status));
+                        server = new NonameWebSocketServer(8080, this::setServerStatus);
                         server.setReuseAddr(true);
                         server.start();
                     }
@@ -321,27 +324,55 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
         });
     }
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onServerStatusChange(MsgServerStatus msg) {
-//        switch (msg.getStatus()) {
-//            case NonameWebSocketServer.SERVER_TYPE_START:
-//            case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
-//                startButton.setText(R.string.btn_text_server_end);
-//                break;
-//            }
-//            case NonameWebSocketServer.SERVER_TYPE_CLOSE:
-//            case NonameWebSocketServer.SERVER_TYPE_ERROR:
-//            case NonameWebSocketServer.SERVER_TYPE_STOP: {
-//                startButton.setText(R.string.btn_text_server_start);
-//                break;
-//            }
-//        }
-//
-//        setServerStatus(msg.getStatus());
-//    }
-
     public void setServerStatus(int serverStatus) {
+        if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+            handler.post(() -> setServerStatus(serverStatus));
+            return;
+        }
+
+        if (!isAlive) {
+            return;
+        }
+
         this.serverStatus = serverStatus;
+        serverStatusView.setStatus(serverStatus);
+
+        switch (serverStatus) {
+            case NonameWebSocketServer.SERVER_TYPE_START: {
+                serverStatusView.setText(R.string.server_start);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
+                serverStatusView.setText(R.string.server_running);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_CLOSE: {
+                serverStatusView.setText(R.string.server_close);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_ERROR: {
+                serverStatusView.setText(R.string.server_error);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_STOP: {
+                serverStatusView.setText(R.string.server_stop);
+                break;
+            }
+        }
+
+        switch (serverStatus) {
+            case NonameWebSocketServer.SERVER_TYPE_START:
+            case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
+                startButton.setText(R.string.btn_text_server_end);
+                break;
+            }
+            case NonameWebSocketServer.SERVER_TYPE_CLOSE:
+            case NonameWebSocketServer.SERVER_TYPE_ERROR:
+            case NonameWebSocketServer.SERVER_TYPE_STOP: {
+                startButton.setText(R.string.btn_text_server_start);
+                break;
+            }
+        }
     }
 
     private class ServerHandler extends Handler {

@@ -44,7 +44,6 @@ public class FunctionGameShell extends BaseFunction {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName("com.widget.noname.cola",
                     "com.widget.noname.cola.MainActivity"));
-
             getContext().startActivity(intent);
             ((Activity) getContext()).overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
         } catch (Exception e) {

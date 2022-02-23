@@ -120,8 +120,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private ViewGroup lunchViewContainer = null;
 
     private final View.OnClickListener functionButtonListener = v -> {
-
-
         if (v instanceof NButton) {
 
             String buttonText = ((NButton) v).getButtonText();
@@ -621,7 +619,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     @Override
     protected void onDestroy() {
-        WebViewManager.destroy(webView);
+//        WebViewManager.destroy(webView);
         animatorsHolder.forEach(Animator::cancel);
         animatorsHolder.clear();
 
