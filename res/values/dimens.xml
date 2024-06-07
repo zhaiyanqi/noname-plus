@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="wave_border_width">4dp</dimen>
+    <dimen name="wave_view_size">65dp</dimen>
+    <dimen name="lunch_layout_button_margin_start">35dp</dimen>
+    <dimen name="lunch_layout_button_margin">35dp</dimen>
+    <dimen name="lunch_layout_button_padding">9dp</dimen>
+    <dimen name="lunch_layout_view_pager_margin_start">20dp</dimen>
+    <dimen name="lunch_layout_height">23dp</dimen>
+    <dimen name="lunch_layout_button_width">120dp</dimen>
+    <dimen name="n_button_size">90dp</dimen>
+</resources>

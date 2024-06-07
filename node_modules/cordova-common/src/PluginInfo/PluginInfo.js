@@ -64,6 +64,13 @@ class PluginInfo {
      * @return {Object} { key : default | null}
     */
     getPreferences (platform) {
+        // XML passthrough for preferences is not supported because multiple preferences will override each other.
+        // https://github.com/apache/cordova-common/issues/182
+        // return this._getTags('preference', platform).map(({ attrib }) => {
+        //     return Object.assign({}, attrib, {
+        //         [attrib.name.toUpperCase()]: attrib.default || null
+        //     });
+        // })
         return this._getTags('preference', platform).map(({ attrib }) => ({
             [attrib.name.toUpperCase()]: attrib.default || null
         }))
@@ -84,7 +91,9 @@ class PluginInfo {
                 throw new Error(`Malformed <asset> tag. Both "src" and "target" attributes must be specified in ${this.filepath}`);
             }
 
-            return { itemType: 'asset', src, target };
+            return Object.assign({}, attrib, {
+                itemType: 'asset', src, target
+            });
         });
     }
 
@@ -105,14 +114,14 @@ class PluginInfo {
                 throw new CordovaError(`<dependency> tag is missing id attribute in ${this.filepath}`);
             }
 
-            return {
+            return Object.assign({}, attrib, {
                 id: attrib.id,
                 version: attrib.version || '',
                 url: attrib.url || '',
                 subdir: attrib.subdir || '',
                 commit: attrib.commit,
                 git_ref: attrib.commit
-            };
+            });
         });
     }
 
@@ -122,15 +131,17 @@ class PluginInfo {
      * @param {string} platform
      */
     getConfigFiles (platform) {
-        return this._getTags('config-file', platform).map(tag => ({
-            target: tag.attrib.target,
-            parent: tag.attrib.parent,
-            after: tag.attrib.after,
-            xmls: tag.getchildren(),
-            // To support demuxing via versions
-            versions: tag.attrib.versions,
-            deviceTarget: tag.attrib['device-target']
-        }));
+        return this._getTags('config-file', platform).map(tag => {
+            return Object.assign({}, tag.attrib, {
+                target: tag.attrib.target,
+                parent: tag.attrib.parent,
+                after: tag.attrib.after,
+                xmls: tag.getchildren(),
+                // To support demuxing via versions
+                versions: tag.attrib.versions,
+                deviceTarget: tag.attrib['device-target']
+            });
+        });
     }
 
     /**
@@ -139,12 +150,14 @@ class PluginInfo {
      * @param {string} platform
      */
     getEditConfigs (platform) {
-        return this._getTags('edit-config', platform).map(tag => ({
-            file: tag.attrib.file,
-            target: tag.attrib.target,
-            mode: tag.attrib.mode,
-            xmls: tag.getchildren()
-        }));
+        return this._getTags('edit-config', platform).map(tag => {
+            return Object.assign({}, tag.attrib, {
+                file: tag.attrib.file,
+                target: tag.attrib.target,
+                mode: tag.attrib.mode,
+                xmls: tag.getchildren()
+            });
+        });
     }
 
     /**
@@ -169,14 +182,16 @@ class PluginInfo {
      * @param {string} platform
      */
     getSourceFiles (platform) {
-        return this._getTagsInPlatform('source-file', platform).map(({ attrib }) => ({
-            itemType: 'source-file',
-            src: attrib.src,
-            framework: isStrTrue(attrib.framework),
-            weak: isStrTrue(attrib.weak),
-            compilerFlags: attrib['compiler-flags'],
-            targetDir: attrib['target-dir']
-        }));
+        return this._getTagsInPlatform('source-file', platform).map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                itemType: 'source-file',
+                src: attrib.src,
+                framework: isStrTrue(attrib.framework),
+                weak: isStrTrue(attrib.weak),
+                compilerFlags: attrib['compiler-flags'],
+                targetDir: attrib['target-dir']
+            });
+        });
     }
 
     /**
@@ -187,12 +202,14 @@ class PluginInfo {
      * @param {string} platform
      */
     getHeaderFiles (platform) {
-        return this._getTagsInPlatform('header-file', platform).map(({ attrib }) => ({
-            itemType: 'header-file',
-            src: attrib.src,
-            targetDir: attrib['target-dir'],
-            type: attrib.type
-        }));
+        return this._getTagsInPlatform('header-file', platform).map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                itemType: 'header-file',
+                src: attrib.src,
+                targetDir: attrib['target-dir'],
+                type: attrib.type
+            });
+        });
     }
 
     /**
@@ -210,15 +227,17 @@ class PluginInfo {
      * @param {string} platform
      */
     getResourceFiles (platform) {
-        return this._getTagsInPlatform('resource-file', platform).map(({ attrib }) => ({
-            itemType: 'resource-file',
-            src: attrib.src,
-            target: attrib.target,
-            versions: attrib.versions,
-            deviceTarget: attrib['device-target'],
-            arch: attrib.arch,
-            reference: attrib.reference
-        }));
+        return this._getTagsInPlatform('resource-file', platform).map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                itemType: 'resource-file',
+                src: attrib.src,
+                target: attrib.target,
+                versions: attrib.versions,
+                deviceTarget: attrib['device-target'],
+                arch: attrib.arch,
+                reference: attrib.reference
+            });
+        });
     }
 
     /**
@@ -230,14 +249,16 @@ class PluginInfo {
      * @param {string} platform
      */
     getLibFiles (platform) {
-        return this._getTagsInPlatform('lib-file', platform).map(({ attrib }) => ({
-            itemType: 'lib-file',
-            src: attrib.src,
-            arch: attrib.arch,
-            Include: attrib.Include,
-            versions: attrib.versions,
-            deviceTarget: attrib['device-target'] || attrib.target
-        }));
+        return this._getTagsInPlatform('lib-file', platform).map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                itemType: 'lib-file',
+                src: attrib.src,
+                arch: attrib.arch,
+                Include: attrib.Include,
+                versions: attrib.versions,
+                deviceTarget: attrib['device-target'] || attrib.target
+            });
+        });
     }
 
     /**
@@ -303,27 +324,33 @@ class PluginInfo {
      * @param {string} platform
      */
     getJsModules (platform) {
-        return this._getTags('js-module', platform).map(tag => ({
-            itemType: 'js-module',
-            name: tag.attrib.name,
-            src: tag.attrib.src,
-            clobbers: tag.findall('clobbers').map(tag => ({ target: tag.attrib.target })),
-            merges: tag.findall('merges').map(tag => ({ target: tag.attrib.target })),
-            runs: tag.findall('runs').length > 0
-        }));
+        return this._getTags('js-module', platform).map(tag => {
+            return Object.assign({}, tag.attrib, {
+                itemType: 'js-module',
+                name: tag.attrib.name,
+                src: tag.attrib.src,
+                clobbers: tag.findall('clobbers').map(tag => ({ target: tag.attrib.target })),
+                merges: tag.findall('merges').map(tag => ({ target: tag.attrib.target })),
+                runs: tag.findall('runs').length > 0
+            });
+        });
     }
 
     getEngines () {
-        return this._et.findall('engines/engine').map(({ attrib }) => ({
-            name: attrib.name,
-            version: attrib.version,
-            platform: attrib.platform,
-            scriptSrc: attrib.scriptSrc
-        }));
+        return this._et.findall('engines/engine').map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                name: attrib.name,
+                version: attrib.version,
+                platform: attrib.platform,
+                scriptSrc: attrib.scriptSrc
+            });
+        });
     }
 
     getPlatforms () {
-        return this._et.findall('platform').map(n => ({ name: n.attrib.name }));
+        return this._et.findall('platform').map(n => {
+            return Object.assign({}, n.attrib, { name: n.attrib.name });
+        });
     }
 
     getPlatformsArray () {
@@ -346,21 +373,23 @@ class PluginInfo {
         // Replaces plugin variables in s if they exist
         const expandVars = s => varExpansions.reduce((acc, fn) => fn(acc), s);
 
-        return this._getTags('framework', platform).map(({ attrib }) => ({
-            itemType: 'framework',
-            type: attrib.type,
-            parent: attrib.parent,
-            custom: isStrTrue(attrib.custom),
-            embed: isStrTrue(attrib.embed),
-            src: expandVars(attrib.src),
-            spec: attrib.spec,
-            weak: isStrTrue(attrib.weak),
-            versions: attrib.versions,
-            targetDir: attrib['target-dir'],
-            deviceTarget: attrib['device-target'] || attrib.target,
-            arch: attrib.arch,
-            implementation: attrib.implementation
-        }));
+        return this._getTags('framework', platform).map(({ attrib }) => {
+            return Object.assign({}, attrib, {
+                itemType: 'framework',
+                type: attrib.type,
+                parent: attrib.parent,
+                custom: isStrTrue(attrib.custom),
+                embed: isStrTrue(attrib.embed),
+                src: expandVars(attrib.src),
+                spec: attrib.spec,
+                weak: isStrTrue(attrib.weak),
+                versions: attrib.versions,
+                targetDir: attrib['target-dir'],
+                deviceTarget: attrib['device-target'] || attrib.target,
+                arch: attrib.arch,
+                implementation: attrib.implementation
+            });
+        });
     }
 
     getFilesAndFrameworks (platform, options) {

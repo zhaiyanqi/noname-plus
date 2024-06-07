@@ -28,36 +28,44 @@
 
 Cordova Android is an Android application library that allows for Cordova-based projects to be built for the Android Platform. Cordova based applications are, at the core, applications written with web technology: HTML, CSS and JavaScript.
 
-[Apache Cordova](https://cordova.apache.org) is a project of The Apache Software Foundation (ASF).
+[Apache Cordova](https://cordova.apache.org/) is a project of [The Apache Software Foundation (ASF)](https://apache.org/).
 
-## Requires
+## Requirements
 
-- Java JDK 1.8
-- Android SDK [http://developer.android.com](https://developer.android.com/)
+* Java Development Kit (JDK) 11
+* [Android SDK](https://developer.android.com/)
+* [Node.js](https://nodejs.org)
 
-## Cordova Android Developer Tools
+## Create a Cordova project
 
-We recommend using the [Cordova command-line tool](https://www.npmjs.com/package/cordova) to create projects and be able to easily install plugins.
+Follow the instructions in the [**Create your first Cordova app**](https://cordova.apache.org/docs/en/latest/guide/cli/index.html) section of [Apache Cordova Docs](https://cordova.apache.org/docs/en/latest/)
 
-However, the following scripts can be used instead:
+To use a **shared framework**, for example in development, link the appropriate cordova-android platform folder path:
 
-    ./bin/create [path package activity] ... creates the ./example app or a cordova android project
-    ./bin/check_reqs ....................... checks that your environment is set up for cordova-android development
-    ./bin/update [path] .................... updates an existing cordova-android project to the version of the framework
+```bash
+cordova platform add --link /path/to/cordova-android
+```
 
-These commands live in a generated Cordova Android project. Any interactions with the emulator require you to have an AVD defined.
+## Updating a Cordova project
 
-    ./cordova/clean ........................ cleans the project
-    ./cordova/build ........................ calls `clean` then compiles the project
-    ./cordova/log   ........................ streams device or emulator logs to STDOUT
-    ./cordova/run   ........................ calls `build` then deploys to a connected Android device. If no Android device is detected, will launch an emulator and deploy to it.
-    ./cordova/version ...................... returns the cordova-android version of the current project
+When you install a new version of the [`Cordova CLI`](https://www.npmjs.com/package/cordova) that pins a new version of the [`Cordova-Android`](https://www.npmjs.com/package/cordova-android) platform, you can follow these simple upgrade steps within your project:
 
-## Using Android Studio
+```bash
+cordova platform rm android
+cordova platform add android
+```
 
-1. Create a project
-2. Import it via "Non-Android Studio Project"
+## Debugging in Android Studio
 
-## Running the Native Tests
+Import project in Android Studio through _File > Open_ and targeting `/path/to/your-cdv-project/platforms/android/`.
 
-The `test/` directory in this project contains an Android test project that can be used to run different kinds of native tests. Check out the [README contained therein](test/README.md) for more details!
+## How to Test Repo Development
+
+```bash
+npm install
+npm test
+```
+
+## Further reading
+
+* [Apache Cordova](https://cordova.apache.org/)

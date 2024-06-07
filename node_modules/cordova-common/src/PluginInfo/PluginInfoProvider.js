@@ -78,6 +78,7 @@ function getAllHelper (absPath, provider) {
             return provider.get(path.dirname(pluginXmlPath));
         } catch (err) {
             events.emit('warn', `Error parsing ${pluginXmlPath}:\n${err.stack}`);
+            return null;
         }
     }).filter(p => p);
 }

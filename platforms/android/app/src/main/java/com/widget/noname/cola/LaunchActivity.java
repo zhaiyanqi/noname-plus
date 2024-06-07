@@ -1,5 +1,7 @@
 package com.widget.noname.cola;
 
+import static com.widget.noname.cola.MyApplication.webViewInited;
+
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -8,18 +10,22 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Process;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.PathInterpolator;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -34,6 +40,11 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.alibaba.fastjson.JSON;
 import com.lxj.xpopup.XPopup;
 import com.lxj.xpopup.impl.ConfirmPopupView;
+import com.norman.webviewup.lib.UpgradeCallback;
+import com.norman.webviewup.lib.WebViewUpgrade;
+import com.norman.webviewup.lib.source.UpgradePackageSource;
+import com.norman.webviewup.lib.util.ProcessUtils;
+import com.norman.webviewup.lib.util.VersionUtils;
 import com.permissionx.guolindev.PermissionX;
 import com.tencent.mmkv.MMKV;
 import com.widget.noname.cola.adapter.LaunchViewPagerAdapter;
@@ -54,6 +65,10 @@ import com.widget.noname.plus.common.manager.WebViewManager;
 import com.widget.noname.plus.common.util.FileConstant;
 import com.widget.noname.plus.nonameui.NButton;
 
+import org.apache.cordova.engine.SystemWebChromeClient;
+import org.apache.cordova.engine.SystemWebView;
+import org.apache.cordova.engine.SystemWebViewClient;
+import org.apache.cordova.engine.SystemWebViewEngine;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -66,12 +81,16 @@ import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@SuppressLint("CustomSplashScreen")
 public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallback,
         RadioGroup.OnCheckedChangeListener, ExtractListener, View.OnClickListener {
+
+    private static final String TAG = "LaunchActivity";
 
     private FunctionManager functionManager = null;
 
@@ -86,33 +105,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     private WaveLoadingView waveLoadingView = null;
     private int importChoice = -1;
     private ObjectAnimator waveViewAnimator = null;
-
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_launch);
-//        hideSystemUI();
-//        initWebView();
-//        initViewPager();
-//        initWaveView();
-//
-//        serverStatusView = findViewById(R.id.server_status_red_dot);
-//
-//        Intent intent = getIntent();
-//
-//        if ((null != intent) && Intent.ACTION_VIEW.equals(intent.getAction())) {
-//            Uri data = intent.getData();
-//            showSingleChoiceDialog(data);
-//        } else {
-//            String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
-//
-//            if (null == path) {
-//                askExtraDefaultFile();
-//            }
-//        }
-//    }
-
-
     private BaseFunction currentFunction = null;
     private ViewGroup functionContainer = null;
     private ViewGroup lunchViewContainer = null;
@@ -153,7 +145,27 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
             e.printStackTrace();
         }
 
+        Bundle extras = getIntent().getExtras();
+
+        try {
+            ((MyApplication) getApplication()).waitForInit();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Log.e(TAG, "LaunchActivityOnCreate");
         initFunctions();
+        initWaveView();
+        Intent intent = getIntent();
+        if ((null != intent) && Intent.ACTION_VIEW.equals(intent.getAction())) {
+            Uri data = intent.getData();
+            showSingleChoiceDialog(data);
+        } else {
+            String path = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
+            if (null == path) {
+                askExtraDefaultFile();
+            }
+        }
     }
 
     private void initFunctions() {
@@ -203,7 +215,6 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     @Override
     protected void onResume() {
         super.onResume();
-
         initWebView();
 
         if (null != functionManager) {
@@ -408,6 +419,8 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MsgToActivity msg) {
+        Log.e(TAG, String.valueOf(msg.type));
+        Log.e(TAG, String.valueOf(msg.obj));
         switch (msg.type) {
             case MessageType.SET_SERVER_IP: {
                 startGameWhenSetIp = false;
@@ -447,26 +460,21 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
     }
 
     private void hideSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        // Set the content to appear under the system bars so that the
-                        // content doesn't resize when the system bars hide and show.
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        // Hide the nav bar and status bar
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        final int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
+        getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
 
     private void showSingleChoiceDialog(Uri data) {
         importChoice = 0;
         AlertDialog.Builder singleChoiceDialog =
-                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert);
+                new AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Light_Dialog_Alert);
         singleChoiceDialog.setTitle("请选择解压路径");
         singleChoiceDialog.setCancelable(false);
 
@@ -483,7 +491,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                         dialog.dismiss();
                         runOnUiThread(() -> {
                             if (importChoice != -1) {
-                                radioGroup.check(R.id.button_version_control);
+                                if (radioGroup != null) radioGroup.check(R.id.button_version_control);
                                 importAsset(importChoice, data);
                             }
                         });
@@ -497,7 +505,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
                         dialog.dismiss();
                         runOnUiThread(() -> {
                             if (importChoice != -1) {
-                                radioGroup.check(R.id.button_version_control);
+                                if (radioGroup != null) radioGroup.check(R.id.button_version_control);
                                 importAsset(importChoice + 1, data);
                             }
                         });
@@ -596,25 +604,22 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
 
     private void initWebView() {
         webView = new WebView(this);
+        Log.e(TAG, webView.getSettings().getUserAgentString());
         webView.setVisibility(View.INVISIBLE);
         ViewGroup root = findViewById(R.id.root_view);
         root.addView(webView);
-
         bridgeHelper = new BridgeHelper(webView, this);
     }
 
     @Override
     protected void onDestroy() {
-//        WebViewManager.destroy(webView);
+        // WebViewManager.destroy(webView);
         animatorsHolder.forEach(Animator::cancel);
         animatorsHolder.clear();
-
         super.onDestroy();
     }
 
     public void onServerClick(View view) {
-
-
         showFunctionContainer();
     }
 
@@ -735,7 +740,7 @@ public class LaunchActivity extends AppCompatActivity implements OnJsBridgeCallb
         File file = new File(path);
         List<File> gameInPath = FileUtil.findGameInPath(file);
 
-        if (gameInPath.size() > 0) {
+        if (!gameInPath.isEmpty()) {
             MMKV.defaultMMKV().putString(FileConstant.GAME_PATH_KEY, gameInPath.get(0).getPath());
         }
 

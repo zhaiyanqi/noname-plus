@@ -24,16 +24,20 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.Context;
 
 public class ConfigXmlParser {
     private static String TAG = "ConfigXmlParser";
 
-    private String launchUrl = "file:///android_asset/www/index.html";
+    private static String SCHEME_HTTP = "http";
+    private static String SCHEME_HTTPS = "https";
+    private static String DEFAULT_HOSTNAME = "localhost";
+    private static final String DEFAULT_CONTENT_SRC = "index.html";
+
+    private String launchUrl;
+    private String contentSrc;
     private CordovaPreferences prefs = new CordovaPreferences();
     private ArrayList<PluginEntry> pluginEntries = new ArrayList<PluginEntry>(20);
 
@@ -46,6 +50,10 @@ public class ConfigXmlParser {
     }
 
     public String getLaunchUrl() {
+        if (launchUrl == null) {
+            setStartUrl(contentSrc);
+        }
+
         return launchUrl;
     }
 
@@ -60,6 +68,23 @@ public class ConfigXmlParser {
                 return;
             }
         }
+
+        pluginEntries.add(
+            new PluginEntry(
+                AllowListPlugin.PLUGIN_NAME,
+                "org.apache.cordova.AllowListPlugin",
+                true
+            )
+        );
+
+        pluginEntries.add(
+            new PluginEntry(
+                SplashScreenPlugin.PLUGIN_NAME,
+                "org.apache.cordova.SplashScreenPlugin",
+                true
+            )
+        );
+
         parse(action.getResources().getXml(id));
     }
 
@@ -85,6 +110,18 @@ public class ConfigXmlParser {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        onPostParse();
+    }
+
+    private void onPostParse() {
+        // After parsing, if contentSrc is still null, it signals
+        // that <content> tag was completely missing. In this case,
+        // default it.
+        // https://github.com/apache/cordova-android/issues/1432
+        if (contentSrc == null) {
+            contentSrc = DEFAULT_CONTENT_SRC;
         }
     }
 
@@ -113,7 +150,10 @@ public class ConfigXmlParser {
         else if (strNode.equals("content")) {
             String src = xml.getAttributeValue(null, "src");
             if (src != null) {
-                setStartUrl(src);
+                contentSrc = src;
+            } else {
+                // Default
+                contentSrc = DEFAULT_CONTENT_SRC;
             }
         }
     }
@@ -130,16 +170,40 @@ public class ConfigXmlParser {
         }
     }
 
+    private String getLaunchUrlPrefix() {
+        if (prefs.getBoolean("AndroidInsecureFileModeEnabled", false)) {
+            return "file:///android_asset/www/";
+        } else {
+            String scheme = prefs.getString("scheme", SCHEME_HTTPS).toLowerCase();
+            String hostname = prefs.getString("hostname", DEFAULT_HOSTNAME).toLowerCase();
+
+            if (!scheme.contentEquals(SCHEME_HTTP) && !scheme.contentEquals(SCHEME_HTTPS)) {
+                LOG.d(TAG, "The provided scheme \"" + scheme + "\" is not valid. " +
+                    "Defaulting to \"" + SCHEME_HTTPS + "\". " +
+                    "(Valid Options=" + SCHEME_HTTP + "," + SCHEME_HTTPS + ")");
+
+                scheme = SCHEME_HTTPS;
+            }
+
+            return scheme + "://" + hostname + '/';
+        }
+    }
+
     private void setStartUrl(String src) {
         Pattern schemeRegex = Pattern.compile("^[a-z-]+://");
         Matcher matcher = schemeRegex.matcher(src);
+
         if (matcher.find()) {
             launchUrl = src;
         } else {
+            String launchUrlPrefix = getLaunchUrlPrefix();
+
+            // remove leading slash, "/", from content src if existing,
             if (src.charAt(0) == '/') {
                 src = src.substring(1);
             }
-            launchUrl = "file:///android_asset/www/" + src;
+
+            launchUrl = launchUrlPrefix + src;
         }
     }
 }

@@ -4,14 +4,18 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.MutableContextWrapper;
 import android.os.Looper;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 
 public class WebViewManager {
+    private static final String TAG = "WebViewManager";
 
     private static final ArrayList<WebView> webViewCache = new ArrayList<>();
 
@@ -19,10 +23,8 @@ public class WebViewManager {
         return new WebView(context);
     }
 
-    public static void addMinWebViewToContainer(ViewGroup viewGroup, WebView webView) {
-        if ((null != viewGroup) && (null != webView)) {
-            viewGroup.addView(webView, new ViewGroup.LayoutParams(1, 1));
-        }
+    public static void addMinWebViewToContainer(@NonNull ViewGroup viewGroup, @NonNull WebView webView) {
+        viewGroup.addView(webView, new ViewGroup.LayoutParams(1, 1));
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
@@ -54,8 +56,8 @@ public class WebViewManager {
         settings.setDomStorageEnabled(true);
 
         settings.setGeolocationEnabled(true);
-        settings.setAppCachePath(databasePath);
-        settings.setAppCacheEnabled(true);
+        // settings.setAppCachePath(databasePath);
+        // settings.setAppCacheEnabled(true);
         webView.addJavascriptInterface(jsBridge, tag);
 
         webView.loadUrl(url);
@@ -89,8 +91,8 @@ public class WebViewManager {
             webView.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
             webView.clearHistory();
             webView.pauseTimers();
-            webView.setWebChromeClient(null);
-            webView.setWebViewClient(null);
+            // webView.setWebChromeClient(null);
+            // webView.setWebViewClient(null);
             ViewParent parent = webView.getParent();
 
             if (parent != null) {

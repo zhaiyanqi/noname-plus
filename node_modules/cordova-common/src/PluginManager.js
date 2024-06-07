@@ -17,7 +17,6 @@
        under the License.
 */
 
-const Q = require('q');
 const fs = require('fs-extra');
 const path = require('path');
 
@@ -77,12 +76,12 @@ class PluginManager {
      * @param {Object} [options={}] An installation options. It is expected but is not necessary
      *   that options would contain 'variables' inner object with 'PACKAGE_NAME' field set by caller.
      *
-     * @returns {Promise} Returns a Q promise, either resolved in case of success, rejected otherwise.
+     * @returns {Promise}
      */
     doOperation (operation, plugin, options) {
-        if (operation !== PluginManager.INSTALL && operation !== PluginManager.UNINSTALL) { return Q.reject(new CordovaError('The parameter is incorrect. The opeation must be either "add" or "remove"')); }
+        if (operation !== PluginManager.INSTALL && operation !== PluginManager.UNINSTALL) { return Promise.reject(new CordovaError('The parameter is incorrect. The opeation must be either "add" or "remove"')); }
 
-        if (!plugin || plugin.constructor.name !== 'PluginInfo') { return Q.reject(new CordovaError('The parameter is incorrect. The first parameter should be a PluginInfo instance')); }
+        if (!plugin || plugin.constructor.name !== 'PluginInfo') { return Promise.reject(new CordovaError('The parameter is incorrect. The first parameter should be a PluginInfo instance')); }
 
         // Set default to empty object to play safe when accesing properties
         options = options || {};

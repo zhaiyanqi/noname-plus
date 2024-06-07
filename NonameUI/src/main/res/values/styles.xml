@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="n_button_text_style">
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:textSize">38sp</item>
+        <item name="android:textColor">#ffffffff</item>
+    </style>
+</resources>

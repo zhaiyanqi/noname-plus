@@ -22,7 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Encapsulates in-progress status of uploading or downloading a file to a remote com.widget.noname.plus.common.server.
+ * Encapsulates in-progress status of uploading or downloading a file to a remote server.
  */
 public class FileProgressResult {
 

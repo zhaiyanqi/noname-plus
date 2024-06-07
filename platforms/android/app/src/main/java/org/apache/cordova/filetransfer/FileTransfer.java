@@ -18,9 +18,26 @@
 */
 package org.apache.cordova.filetransfer;
 
-import android.net.Uri;
-import android.os.Build;
-import android.webkit.CookieManager;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -29,31 +46,14 @@ import org.apache.cordova.CordovaResourceApi.OpenForReadResult;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.Whitelist;
 import org.apache.cordova.file.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
+import android.net.Uri;
+import android.os.Build;
+import android.webkit.CookieManager;
 
 public class FileTransfer extends CordovaPlugin {
 
@@ -95,7 +95,7 @@ public class FileTransfer extends CordovaPlugin {
     /**
      * Adds an interface method to an InputStream to return the number of bytes
      * read from the raw stream. This is used to track total progress against
-     * the HTTP Content-Length header value from the com.widget.noname.plus.common.server.
+     * the HTTP Content-Length header value from the server.
      */
     private static abstract class TrackingInputStream extends FilterInputStream {
       public TrackingInputStream(final InputStream in) {
@@ -253,17 +253,16 @@ public class FileTransfer extends CordovaPlugin {
     }
 
     /**
-     * Uploads the specified file to the com.widget.noname.plus.common.server URL provided using an HTTP multipart request.
+     * Uploads the specified file to the server URL provided using an HTTP multipart request.
+     * @param source        Full path of the file on the file system
+     * @param target        URL of the server to receive the file
+     * @param args          JSON Array of args
+     * @param callbackContext    callback id for optional progress reports
      *
-     * @param source          Full path of the file on the file system
-     * @param target          URL of the com.widget.noname.plus.common.server to receive the file
-     * @param args            JSON Array of args
-     * @param callbackContext callback id for optional progress reports
-     *                        <p>
-     *                        args[2] fileKey       Name of file request parameter
-     *                        args[3] fileName      File name to be used on com.widget.noname.plus.common.server
-     *                        args[4] mimeType      Describes file content type
-     *                        args[5] params        key:value pairs of user-defined parameters
+     * args[2] fileKey       Name of file request parameter
+     * args[3] fileName      File name to be used on server
+     * args[4] mimeType      Describes file content type
+     * args[5] params        key:value pairs of user-defined parameters
      * @return FileUploadResult containing result of upload request
      */
     private void upload(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -514,7 +513,7 @@ public class FileTransfer extends CordovaPlugin {
                         safeClose(inStream);
                     }
 
-                    LOG.d(LOG_TAG, "got response from com.widget.noname.plus.common.server");
+                    LOG.d(LOG_TAG, "got response from server");
                     LOG.d(LOG_TAG, responseString.substring(0, Math.min(256, responseString.length())));
 
                     // send request and retrieve response
@@ -655,7 +654,7 @@ public class FileTransfer extends CordovaPlugin {
     /**
      * Downloads a file form a given URL and saves it to the specified directory.
      *
-     * @param source        URL of the com.widget.noname.plus.common.server to receive the file
+     * @param source        URL of the server to receive the file
      * @param target            Full path of the file on the file system
      */
     private void download(final String source, final String target, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -677,25 +676,11 @@ public class FileTransfer extends CordovaPlugin {
             return;
         }
 
-        /* This code exists for compatibility between 3.x and 4.x versions of Cordova.
-         * Previously the CordovaWebView class had a method, getWhitelist, which would
-         * return a Whitelist object. Since the fixed whitelist is removed in Cordova 4.x,
-         * the correct call now is to shouldAllowRequest from the plugin manager.
-         */
         Boolean shouldAllowRequest = null;
         if (isLocalTransfer) {
             shouldAllowRequest = true;
         }
-        if (shouldAllowRequest == null) {
-            try {
-                Method gwl = webView.getClass().getMethod("getWhitelist");
-                Whitelist whitelist = (Whitelist)gwl.invoke(webView);
-                shouldAllowRequest = whitelist.isUrlWhiteListed(source);
-            } catch (NoSuchMethodException e) {
-            } catch (IllegalAccessException e) {
-            } catch (InvocationTargetException e) {
-            }
-        }
+
         if (shouldAllowRequest == null) {
             try {
                 Method gpm = webView.getClass().getMethod("getPluginManager");
@@ -709,12 +694,11 @@ public class FileTransfer extends CordovaPlugin {
         }
 
         if (!Boolean.TRUE.equals(shouldAllowRequest)) {
-            LOG.w(LOG_TAG, "Source URL is not in white list: '" + source + "'");
+            LOG.w(LOG_TAG, "The Source URL is not in the Allow List: '" + source + "'");
             JSONObject error = createFileTransferError(CONNECTION_ERR, source, target, null, 401, null);
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.IO_EXCEPTION, error));
             return;
         }
-
 
         final RequestContext context = new RequestContext(source, target, callbackContext);
         synchronized (activeRequests) {
@@ -756,7 +740,7 @@ public class FileTransfer extends CordovaPlugin {
                         }
                         inputStream = new SimpleTrackingInputStream(readResult.inputStream);
                     } else {
-                        // connect to com.widget.noname.plus.common.server
+                        // connect to server
                         // Open a HTTP connection to the URL based on protocol
                         connection = resourceApi.createHttpConnection(sourceUri);
                         connection.setRequestMethod("GET");
@@ -809,7 +793,7 @@ public class FileTransfer extends CordovaPlugin {
                             // write bytes to file
                             byte[] buffer = new byte[MAX_BUFFER_SIZE];
                             int bytesRead = 0;
-                            outputStream = resourceApi.openOutputStream(targetUri);
+                            outputStream = new FileOutputStream(file);
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
                                 // Send a progress event.

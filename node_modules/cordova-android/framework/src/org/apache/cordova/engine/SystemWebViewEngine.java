@@ -152,40 +152,47 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
 
-        /**
-         * https://developer.android.com/reference/android/webkit/WebSettings#setAllowFileAccess(boolean)
-         * 
-         * SDK >= 30 has recently set this value to false by default.
-         * It is recommended to turn off this settings To prevent possible security issues targeting Build.VERSION_CODES.Q and earlier.
-         * For existing functionality, this setting is set to true. In a future release, this should be defaulted to false.
-         */
-        settings.setAllowFileAccess(true);
-
         String manufacturer = android.os.Build.MANUFACTURER;
         LOG.d(TAG, "CordovaWebView is running on device made by: " + manufacturer);
 
-        //We don't save any form data in the application
+        // We don't save any form data in the application
+        // @todo remove when Cordova drop API level 26 support
         settings.setSaveFormData(false);
-        settings.setSavePassword(false);
 
-        // Jellybean rightfully tried to lock this down. Too bad they didn't give us a whitelist
-        // while we do this
-        settings.setAllowUniversalAccessFromFileURLs(true);
+        if (preferences.getBoolean("AndroidInsecureFileModeEnabled", false)) {
+            //These settings are deprecated and loading content via file:// URLs is generally discouraged,
+            //but we allow this for compatibility reasons
+            LOG.d(TAG, "Enabled insecure file access");
+            settings.setAllowFileAccess(true);
+            settings.setAllowUniversalAccessFromFileURLs(true);
+            cookieManager.setAcceptFileSchemeCookies();
+        }
+
         settings.setMediaPlaybackRequiresUserGesture(false);
 
         // Enable database
         // We keep this disabled because we use or shim to get around DOM_EXCEPTION_ERROR_16
         String databasePath = webView.getContext().getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
         settings.setDatabaseEnabled(true);
-        settings.setDatabasePath(databasePath);
 
+        // The default is to use the module's debuggable state to decide if the webview inspecter
+        // should be enabled. However, users can configure InspectableWebview preference to forcefully enable
+        // or disable the webview inspecter.
+        String inspectableWebview = preferences.getString("InspectableWebview", null);
+        boolean shouldEnableInspector = false;
+        if (inspectableWebview == null) {
+            ApplicationInfo appInfo = webView.getContext().getApplicationContext().getApplicationInfo();
+            shouldEnableInspector = (appInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        }
+        else if ("true".equals(inspectableWebview)) {
+            shouldEnableInspector = true;
+        }
 
-        //Determine whether we're in debug or release mode, and turn on Debugging!
-        ApplicationInfo appInfo = webView.getContext().getApplicationContext().getApplicationInfo();
-        if ((appInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+        if (shouldEnableInspector) {
             enableRemoteDebugging();
         }
 
+        // @todo remove when Cordova drop API level 24 support
         settings.setGeolocationDatabasePath(databasePath);
 
         // Enable DOM storage
@@ -193,12 +200,6 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
 
         // Enable built-in geolocation
         settings.setGeolocationEnabled(true);
-
-        // Enable AppCache
-        // Fix for CB-2282
-        settings.setAppCacheMaxSize(5 * 1048576);
-        settings.setAppCachePath(databasePath);
-        settings.setAppCacheEnabled(true);
 
         // Fix for CB-1405
         // Google issue 4641

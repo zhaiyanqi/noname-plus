@@ -18,12 +18,12 @@
 */
 package org.apache.cordova;
 
-import android.annotation.SuppressLint;
-import android.webkit.ClientCertRequest;
-
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+
+import android.annotation.SuppressLint;
+import android.webkit.ClientCertRequest;
 
 /**
  * Implementation of the ICordovaClientCertRequest for Android WebView.
@@ -47,7 +47,7 @@ public class CordovaClientCertRequest implements ICordovaClientCertRequest {
     }
 
     /*
-     * Returns the host name of the com.widget.noname.plus.common.server requesting the certificate.
+     * Returns the host name of the server requesting the certificate.
      */
     @SuppressLint("NewApi")
     public String getHost()
@@ -65,7 +65,7 @@ public class CordovaClientCertRequest implements ICordovaClientCertRequest {
     }
 
     /*
-     * Returns the port number of the com.widget.noname.plus.common.server requesting the certificate.
+     * Returns the port number of the server requesting the certificate.
      */
     @SuppressLint("NewApi")
     public int getPort()
