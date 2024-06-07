@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:NButton="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:id="@+id/image_background"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/launch_layout_bg"
+        NButton:layout_constraintBottom_toBottomOf="parent"
+        NButton:layout_constraintEnd_toEndOf="parent"
+        NButton:layout_constraintStart_toStartOf="parent"
+        NButton:layout_constraintTop_toTopOf="parent" />
+
+    <RelativeLayout
+        android:id="@+id/main_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        NButton:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+
+        <LinearLayout
+            android:id="@+id/function_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:orientation="horizontal" />
+
+        <com.widget.noname.cola.WaveLoadingView
+            android:id="@+id/wave_loading_view"
+            android:layout_width="@dimen/wave_view_size"
+            android:layout_height="@dimen/wave_view_size"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone"
+            android:layout_marginEnd="93dp"
+            android:layout_marginBottom="48dp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/function_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/function_container_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        NButton:layout_constraintStart_toStartOf="parent"
+        NButton:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/text_app_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="5dp"
+        android:textColor="#f1f1f1"
+        NButton:layout_constraintBottom_toBottomOf="parent"
+        NButton:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,7 +18,6 @@
 */
 
 const events = require('./events');
-const Q = require('q');
 
 class ActionStack {
     constructor () {
@@ -72,13 +71,13 @@ class ActionStack {
                     }
                 }
                 e.message = issue + e.message;
-                return Q.reject(e);
+                return Promise.reject(e);
             }
             this.completed.push(action);
         }
         events.emit('verbose', 'Action stack processing complete.');
 
-        return Q();
+        return Promise.resolve();
     }
 }
 

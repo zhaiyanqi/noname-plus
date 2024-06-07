@@ -16,7 +16,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const endent = require('endent');
+const endent = require('endent').default;
 const mungeutil = require('./ConfigChanges/munge-util');
 
 class PlatformJson {

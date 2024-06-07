@@ -567,6 +567,7 @@ class ImageResource extends BaseResource {
         this.height = Number(attrs.height) || undefined;
         this.background = attrs.background || undefined;
         this.foreground = attrs.foreground || undefined;
+        this.monochrome = attrs.monochrome || undefined;
     }
 }
 

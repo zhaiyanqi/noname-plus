@@ -6,12 +6,10 @@ A node module to get Android versions by API level, NDK level, semantic version,
 Versions are referenced from [source.android.com/source/build-numbers.html](https://source.android.com/source/build-numbers.html#platform-code-names-versions-api-levels-and-ndk-releases). The version for "Current Development Build" (`"CUR_DEVELOPMENT"`) is not included in the list of `VERSIONS`.
 
 [![NPM version][npm-image]][npm-url]
-[![build status][travis-image]][travis-url]
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/dvoiss/android-versions/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/dvoiss/android-versions/tree/master)
 
 [npm-image]: https://img.shields.io/npm/v/android-versions.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/android-versions
-[travis-image]: https://img.shields.io/travis/dvoiss/android-versions.svg?style=flat-square
-[travis-url]: https://travis-ci.org/dvoiss/android-versions
 
 ## Install
 

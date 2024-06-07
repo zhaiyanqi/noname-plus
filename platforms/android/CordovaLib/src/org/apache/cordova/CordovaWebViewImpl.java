@@ -115,9 +115,8 @@ public class CordovaWebViewImpl implements CordovaWebView {
         // This isn't enforced by the compiler, so assert here.
         assert engine.getView() instanceof CordovaWebViewEngine.EngineView;
 
-        pluginManager.addService(CoreAndroid.PLUGIN_NAME, "org.apache.cordova.CoreAndroid");
+        pluginManager.addService(CoreAndroid.PLUGIN_NAME, "org.apache.cordova.CoreAndroid", true);
         pluginManager.init();
-
     }
 
     @Override
@@ -158,7 +157,7 @@ public class CordovaWebViewImpl implements CordovaWebView {
                 JSONObject data = new JSONObject();
                 try {
                     data.put("errorCode", -6);
-                    data.put("description", "The connection to the com.widget.noname.plus.common.server was unsuccessful.");
+                    data.put("description", "The connection to the server was unsuccessful.");
                     data.put("url", url);
                 } catch (JSONException e) {
                     // Will never happen.
@@ -219,19 +218,19 @@ public class CordovaWebViewImpl implements CordovaWebView {
 
         // If loading into our webview
         if (!openExternal) {
-            // Make sure url is in whitelist
+            // Make sure url is in allow list
             if (pluginManager.shouldAllowNavigation(url)) {
                 // TODO: What about params?
                 // Load new URL
                 loadUrlIntoView(url, true);
                 return;
             } else {
-                LOG.w(TAG, "showWebPage: Refusing to load URL into webview since it is not in the <allow-navigation> whitelist. URL=" + url);
+                LOG.w(TAG, "showWebPage: Refusing to load URL into webview since it is not in the <allow-navigation> allow list. URL=" + url);
                 return;
             }
         }
         if (!pluginManager.shouldOpenExternalUrl(url)) {
-            LOG.w(TAG, "showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> whitelist. URL=" + url);
+            LOG.w(TAG, "showWebPage: Refusing to send intent for URL since it is not in the <allow-intent> allow list. URL=" + url);
             return;
         }
 
@@ -339,6 +338,7 @@ public class CordovaWebViewImpl implements CordovaWebView {
 
         // Show the content view.
         engine.getView().setVisibility(View.VISIBLE);
+        engine.getView().requestFocus();
     }
 
     @Override
