@@ -64,6 +64,7 @@ public class MainActivity extends CordovaActivity {
 
     private void initWebviewSettings(SystemWebView webview, WebSettings settings) {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setTextZoom(100);
         JsBridgeInterface jsBridgeInterface = new JsBridgeInterface(this, null);
         webview.addJavascriptInterface(jsBridgeInterface, jsBridgeInterface.getCallTag());
         webview.addJavascriptInterface(new NonameJavaScriptInterface(this, webview, preferences), "NonameAndroidBridge");
