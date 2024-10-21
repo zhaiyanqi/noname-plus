@@ -184,9 +184,7 @@ public class CordovaActivity extends AppCompatActivity {
             GameRootPath = getApplicationContext().getExternalFilesDir(null).getParentFile().getAbsolutePath() + File.separator;
         }
         File gamePath =  new File(GameRootPath);
-        String protocol = getSharedPreferences("nonameyuri", MODE_PRIVATE).getString("updateProtocol-" + gamePath.getName(), "file");
-        Log.e(TAG, "updateProtocol-" + GameRootPath);
-        launchUrl = parser.getLaunchUrl(protocol);
+        launchUrl = parser.getLaunchUrl();
         Log.e(TAG, launchUrl);
         pluginEntries = parser.getPluginEntries();
         Config.parser = parser;

@@ -57,14 +57,6 @@ public class ConfigXmlParser {
         return launchUrl;
     }
 
-    public String getLaunchUrl(String protocol) {
-        if (launchUrl == null) {
-            setStartUrl(contentSrc, protocol);
-        }
-
-        return launchUrl;
-    }
-
     public void parse(Context action) {
         // First checking the class namespace for config.xml
         int id = action.getResources().getIdentifier("config", "xml", action.getClass().getPackage().getName());
@@ -197,25 +189,6 @@ public class ConfigXmlParser {
         }
     }
 
-    private String getLaunchUrlPrefix(String protocol) {
-        if (protocol.equals("file")) {
-            return "file:///android_asset/www/";
-        } else {
-            String scheme = prefs.getString("scheme", SCHEME_HTTPS).toLowerCase();
-            String hostname = prefs.getString("hostname", DEFAULT_HOSTNAME).toLowerCase();
-
-            if (!scheme.contentEquals(SCHEME_HTTP) && !scheme.contentEquals(SCHEME_HTTPS)) {
-                LOG.d(TAG, "The provided scheme \"" + scheme + "\" is not valid. " +
-                        "Defaulting to \"" + SCHEME_HTTPS + "\". " +
-                        "(Valid Options=" + SCHEME_HTTP + "," + SCHEME_HTTPS + ")");
-
-                scheme = SCHEME_HTTPS;
-            }
-
-            return scheme + "://" + hostname + '/';
-        }
-    }
-
     private void setStartUrl(String src) {
         Pattern schemeRegex = Pattern.compile("^[a-z-]+://");
         Matcher matcher = schemeRegex.matcher(src);
@@ -224,23 +197,6 @@ public class ConfigXmlParser {
             launchUrl = src;
         } else {
             String launchUrlPrefix = getLaunchUrlPrefix();
-
-            // remove leading slash, "/", from content src if existing,
-            if (src.charAt(0) == '/') {
-                src = src.substring(1);
-            }
-
-            launchUrl = launchUrlPrefix + src;
-        }
-    }
-
-    private void setStartUrl(String src, String protocol) {
-        Pattern schemeRegex = Pattern.compile("^[a-z-]+://");
-        Matcher matcher = schemeRegex.matcher(src);
-        if (matcher.find()) {
-            launchUrl = src;
-        } else {
-            String launchUrlPrefix = getLaunchUrlPrefix(protocol);
 
             // remove leading slash, "/", from content src if existing,
             if (src.charAt(0) == '/') {
