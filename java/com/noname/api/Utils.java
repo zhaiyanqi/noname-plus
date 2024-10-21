@@ -30,7 +30,7 @@ import 	android.content.pm.PackageManager;
 
 import androidx.core.content.ContextCompat;
 
-import com.noname.shijian.R;
+import com.widget.noname.cola.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
