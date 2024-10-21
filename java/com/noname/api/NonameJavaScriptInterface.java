@@ -13,10 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
-import com.tencent.mmkv.MMKV;
-import com.widget.noname.cola.util.JsPathUtil;
-import com.widget.noname.plus.common.util.FileConstant;
-
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionLevel;
@@ -26,9 +22,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.apache.cordova.CordovaPreferences;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class NonameJavaScriptInterface {
     private final Context context;
@@ -43,12 +36,6 @@ public class NonameJavaScriptInterface {
         this.preferences = preferences;
     }
 
-    private String getGamePath() throws Exception {
-        String GameRootPath = JsPathUtil.getGameRootPath(context);
-        return new File((new URL(GameRootPath).toURI())).getAbsolutePath();
-    }
-
-
     @JavascriptInterface
     @SuppressWarnings("unused")
     public void showToast(@NonNull String message) {
@@ -57,8 +44,8 @@ public class NonameJavaScriptInterface {
 
     @JavascriptInterface
     @SuppressWarnings("unused")
-    public boolean shareFile(@NonNull String documentPath) throws Exception {
-        String rootPath = getGamePath();
+    public boolean shareFile(@NonNull String documentPath) {
+        String rootPath = context.getExternalCacheDir().getParentFile().getAbsolutePath();
         if (!documentPath.startsWith(rootPath)) {
             documentPath = rootPath + "/" + documentPath;
         }
@@ -84,8 +71,8 @@ public class NonameJavaScriptInterface {
 
     @JavascriptInterface
     @SuppressWarnings("unused")
-    public void shareExtensionAsync(@NonNull String extName) throws Exception {
-        String rootPath = getGamePath() + "/extension/";
+    public void shareExtensionAsync(@NonNull String extName) {
+        String rootPath = context.getExternalCacheDir().getParentFile().getAbsolutePath() + "/extension/";
         String extPath = extName;
         if (!extPath.startsWith(rootPath)) {
             extPath = rootPath + extPath;
@@ -151,8 +138,8 @@ public class NonameJavaScriptInterface {
 
     @JavascriptInterface
     @SuppressWarnings("unused")
-    public void shareExtensionWithPassWordAsync(@NonNull String extName, @NonNull String pwd) throws Exception {
-        String rootPath = getGamePath() + "/extension/";
+    public void shareExtensionWithPassWordAsync(@NonNull String extName, @NonNull String pwd) {
+        String rootPath = context.getExternalCacheDir().getParentFile().getAbsolutePath() + "/extension/";
         Log.e("shareExtension", rootPath);
         Log.e("shareExtension", extName);
         String extPath = extName;
@@ -233,20 +220,9 @@ public class NonameJavaScriptInterface {
         String scheme = preferences.getString("scheme", SCHEME_HTTPS).toLowerCase();
         String hostname = preferences.getString("hostname", DEFAULT_HOSTNAME).toLowerCase();
 
-        // context.getSharedPreferences("nonameyuri", MODE_PRIVATE)
-        //         .edit()
-        //         .putString("updateProtocol", scheme)
-        //         .apply();
-
-        String GameRootPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
-        if (GameRootPath == null) {
-            GameRootPath = context.getExternalFilesDir(null).getParentFile().getAbsolutePath() + File.separator;
-        }
-        File gamePath =  new File(GameRootPath);
-
         context.getSharedPreferences("nonameyuri", MODE_PRIVATE)
                 .edit()
-                .putString("updateProtocol-" + gamePath.getName(), scheme)
+                .putString("updateProtocol", scheme)
                 .apply();
 
         if (!scheme.contentEquals(SCHEME_HTTP) && !scheme.contentEquals(SCHEME_HTTPS)) {
@@ -271,4 +247,10 @@ public class NonameJavaScriptInterface {
     // 可使用FileObserver实现文件监听功能
 
     // activity.getCallingPackage()
+
+    @JavascriptInterface
+    @SuppressWarnings("unused")
+    public boolean captureScreen(String fileName) {
+        return Utils.captureAndSaveScreenshot(activity, fileName);
+    }
 }
