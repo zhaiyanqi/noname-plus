@@ -46,7 +46,7 @@ npm i
 
 创建安卓项目: 
 ```
-cordova platform add android@12
+cordova platform add android@12.0.1
 ```
 
 在platforms\android\settings.gradle`改为`:
@@ -86,7 +86,18 @@ def generateTime() {
 }
 android { ... }
 ```
-在platforms\android\app\build.gradle的android块中添加:
+
+在platforms\android\app\build.gradle的android块中修改sourceSets块为:
+```gradle
+sourceSets {
+    main {
+        java.srcDirs += 'src/main/kotlin'
+        jniLibs.srcDirs = ['libs']
+    }
+}
+```
+
+在sourceSets块下面添加:
 ```gradle
 buildFeatures {
     //noinspection DataBindingWithoutKapt
@@ -153,7 +164,6 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.1.3'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
-    implementation 'com.hzy:un7zip:1.7.1'
     implementation 'org.java-websocket:Java-WebSocket:1.5.2'
 }
 ```
