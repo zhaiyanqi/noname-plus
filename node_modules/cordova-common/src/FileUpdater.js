@@ -19,8 +19,8 @@
 
 'use strict';
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const fastGlob = require('fast-glob');
 
 /**
@@ -68,7 +68,7 @@ function updatePathWithStats (sourcePath, sourceStats, targetPath, targetStats, 
 
         // The target exists but the source not, so we delete the target.
         log(`delete ${targetPath} (no source)`);
-        fs.removeSync(targetFullPath);
+        fs.rmSync(targetFullPath, { recursive: true, force: true });
         return true;
     }
 
@@ -76,14 +76,14 @@ function updatePathWithStats (sourcePath, sourceStats, targetPath, targetStats, 
         // The target exists but the directory status doesn't match the source.
         // So we delete it and let it be created again by the code below.
         log(`delete ${targetPath} (wrong type)`);
-        fs.removeSync(targetFullPath);
+        fs.rmSync(targetFullPath, { recursive: true, force: true });
         targetStats = null;
     }
 
     if (sourceStats.isDirectory() && !targetStats) {
         // The target directory does not exist, so we create it.
         log(`mkdir ${targetPath}`);
-        fs.ensureDirSync(targetFullPath);
+        fs.mkdirSync(targetFullPath, { recursive: true });
         return true;
     }
 
@@ -103,7 +103,7 @@ function updatePathWithStats (sourcePath, sourceStats, targetPath, targetStats, 
 
         const type = targetStats ? 'updated' : 'new';
         log(`copy  ${sourcePath} ${targetPath} (${type} file)`);
-        fs.copySync(path.join(rootDir, sourcePath), targetFullPath);
+        fs.cpSync(path.join(rootDir, sourcePath), targetFullPath, { recursive: true });
         return true;
     }
 

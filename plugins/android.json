@@ -7,35 +7,32 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-android-permissions": {
-      "PACKAGE_NAME": "com.widget.noname.cola"
-    },
-    "cordova-plugin-battery-status": {
-      "PACKAGE_NAME": "com.widget.noname.cola"
-    },
-    "cordova-plugin-device": {
+    "cordova-plugin-file": {
+      "ANDROIDX_WEBKIT_VERSION": "1.4.0",
       "PACKAGE_NAME": "com.widget.noname.cola"
     },
     "cordova-plugin-dialogs": {
       "PACKAGE_NAME": "com.widget.noname.cola"
     },
-    "cordova-plugin-file": {
-      "ANDROIDX_WEBKIT_VERSION": "1.4.0",
-      "PACKAGE_NAME": "com.widget.noname.cola"
-    },
-    "cordova-plugin-file-transfer": {
-      "PACKAGE_NAME": "com.widget.noname.cola"
-    },
     "cordova-plugin-inappbrowser": {
+      "PACKAGE_NAME": "com.widget.noname.cola"
+    },
+    "cordova-plugin-battery-status": {
       "PACKAGE_NAME": "com.widget.noname.cola"
     },
     "cordova-plugin-insomnia": {
       "PACKAGE_NAME": "com.widget.noname.cola"
     },
+    "cordova-plugin-android-permissions": {
+      "PACKAGE_NAME": "com.widget.noname.cola"
+    },
     "cordova-plugin-statusbar": {
       "PACKAGE_NAME": "com.widget.noname.cola"
     },
-    "cordova-plugin-vibration": {
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "com.widget.noname.cola"
+    },
+    "cordova-plugin-file-transfer": {
       "PACKAGE_NAME": "com.widget.noname.cola"
     }
   },

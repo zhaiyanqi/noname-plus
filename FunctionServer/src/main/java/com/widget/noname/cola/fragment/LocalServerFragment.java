@@ -299,13 +299,13 @@ public class LocalServerFragment extends Fragment implements View.OnClickListene
         switch (msg.getStatus()) {
             case NonameWebSocketServer.SERVER_TYPE_START:
             case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
-                startButton.setText(R.string.btn_text_server_end);
+                startButton.setText(com.widget.noname.cola.library.R.string.btn_text_server_end);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_CLOSE:
             case NonameWebSocketServer.SERVER_TYPE_ERROR:
             case NonameWebSocketServer.SERVER_TYPE_STOP: {
-                startButton.setText(R.string.btn_text_server_start);
+                startButton.setText(com.widget.noname.cola.library.R.string.btn_text_server_start);
                 break;
             }
         }

@@ -344,23 +344,23 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
 
         switch (serverStatus) {
             case NonameWebSocketServer.SERVER_TYPE_START: {
-                serverStatusView.setText(R.string.server_start);
+                serverStatusView.setText(com.widget.noname.cola.library.R.string.server_start);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
-                serverStatusView.setText(R.string.server_running);
+                serverStatusView.setText(com.widget.noname.cola.library.R.string.server_running);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_CLOSE: {
-                serverStatusView.setText(R.string.server_close);
+                serverStatusView.setText(com.widget.noname.cola.library.R.string.server_close);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_ERROR: {
-                serverStatusView.setText(R.string.server_error);
+                serverStatusView.setText(com.widget.noname.cola.library.R.string.server_error);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_STOP: {
-                serverStatusView.setText(R.string.server_stop);
+                serverStatusView.setText(com.widget.noname.cola.library.R.string.server_stop);
                 break;
             }
         }
@@ -368,13 +368,13 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
         switch (serverStatus) {
             case NonameWebSocketServer.SERVER_TYPE_START:
             case NonameWebSocketServer.SERVER_TYPE_RUNNING: {
-                startButton.setText(R.string.btn_text_server_end);
+                startButton.setText(com.widget.noname.cola.library.R.string.btn_text_server_end);
                 break;
             }
             case NonameWebSocketServer.SERVER_TYPE_CLOSE:
             case NonameWebSocketServer.SERVER_TYPE_ERROR:
             case NonameWebSocketServer.SERVER_TYPE_STOP: {
-                startButton.setText(R.string.btn_text_server_start);
+                startButton.setText(com.widget.noname.cola.library.R.string.btn_text_server_start);
                 break;
             }
         }

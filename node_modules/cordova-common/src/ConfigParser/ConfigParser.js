@@ -20,7 +20,7 @@
 const et = require('elementtree');
 const { parseElementtreeSync } = require('../util/xml-helpers');
 const CordovaError = require('../CordovaError');
-const fs = require('fs-extra');
+const fs = require('node:fs');
 const events = require('../events');
 
 const CDV_XMLNS_URI = 'http://cordova.apache.org/ns/1.0';
@@ -487,7 +487,7 @@ class ConfigParser {
     }
 
     write () {
-        fs.writeFileSync(this.path, this.doc.write({ indent: 4 }), 'utf-8');
+        fs.writeFileSync(this.path, this.doc.write({ indent: 4 }), 'utf8');
     }
 }
 

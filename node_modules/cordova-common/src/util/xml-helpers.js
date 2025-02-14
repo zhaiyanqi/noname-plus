@@ -23,9 +23,8 @@
  * contains XML utility functions, some of which are specific to elementtree
  */
 
-const fs = require('fs-extra');
-const path = require('path');
-const extend = require('lodash.assign');
+const fs = require('node:fs');
+const path = require('node:path');
 const zip = require('lodash.zip');
 const et = require('elementtree');
 const stripBom = require('strip-bom');
@@ -159,7 +158,7 @@ module.exports = {
         if (!target) return false;
 
         if (xml.oldAttrib) {
-            target.attrib = extend({}, xml.oldAttrib);
+            target.attrib = Object.assign({}, xml.oldAttrib);
         }
 
         return true;
@@ -189,7 +188,7 @@ module.exports = {
      * @return {et.ElementTree}
      */
     parseElementtreeSync (filename) {
-        return et.parse(stripBom(fs.readFileSync(filename, 'utf-8')));
+        return et.parse(stripBom(fs.readFileSync(filename, 'utf8')));
     },
 
     /**

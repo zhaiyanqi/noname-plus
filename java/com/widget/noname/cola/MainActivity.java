@@ -19,31 +19,30 @@
 
 package com.widget.noname.cola;
 
-import static com.widget.noname.cola.MyApplication.webViewInited;
-
-import android.content.pm.PackageInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-import com.noname.api.NonameJavaScriptInterface;
-import com.norman.webviewup.lib.UpgradeCallback;
-import com.norman.webviewup.lib.WebViewUpgrade;
-import com.norman.webviewup.lib.source.UpgradePackageSource;
-import com.norman.webviewup.lib.util.ProcessUtils;
-import com.norman.webviewup.lib.util.VersionUtils;
+import com.noname.core.NonameJavaScriptInterface;
 import com.widget.noname.cola.bridge.JsBridgeInterface;
 
 import org.apache.cordova.CordovaActivity;
 import org.apache.cordova.engine.SystemWebView;
 
-import java.util.Arrays;
-
 public class MainActivity extends CordovaActivity {
-    private void ActivityOnCreate(Bundle extras) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // enable Cordova apps to be started in the background
+        Bundle extras = getIntent().getExtras();
+        if (extras != null && extras.getBoolean("cdvStartInBackground", false)) {
+            moveTaskToBack(true);
+        }
+
+        Log.e(TAG, "MainActivityOnCreate");
         if (appView == null) {
             init();
         }
@@ -59,86 +58,10 @@ public class MainActivity extends CordovaActivity {
 
     private void initWebviewSettings(SystemWebView webview, WebSettings settings) {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setTextZoom(100);
         JsBridgeInterface jsBridgeInterface = new JsBridgeInterface(this, null);
         webview.addJavascriptInterface(jsBridgeInterface, jsBridgeInterface.getCallTag());
         webview.addJavascriptInterface(new NonameJavaScriptInterface(this, webview, preferences), "NonameAndroidBridge");
         WebView.setWebContentsDebuggingEnabled(true);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // enable Cordova apps to be started in the background
-        Bundle extras = getIntent().getExtras();
-        if (extras != null && extras.getBoolean("cdvStartInBackground", false)) {
-            moveTaskToBack(true);
-        }
-
-        boolean is64Bit = ProcessUtils.is64Bit();
-        String[] supportBitAbis = is64Bit ? Build.SUPPORTED_64_BIT_ABIS : Build.SUPPORTED_32_BIT_ABIS;
-
-        // 内置的apk只有这两种，如果都不包含，就不触发升级内核操作（例如: 虚拟机需要x86）
-        int indexOfArm64 = Arrays.binarySearch(supportBitAbis, "arm64-v8a");
-        int indexOfArmeabi = Arrays.binarySearch(supportBitAbis, "armeabi-v7a");
-        int indexOfX86 = Arrays.binarySearch(supportBitAbis, "x86");
-
-        Log.e(TAG, Arrays.toString(supportBitAbis));
-
-        if (webViewInited || (indexOfArm64 < 0 && indexOfArmeabi < 0 && indexOfX86 < 0)) {
-            ActivityOnCreate(extras);
-        } else {
-            webViewInited = true;
-
-            WebViewUpgrade.addUpgradeCallback(new UpgradeCallback() {
-                @Override
-                public void onUpgradeProcess(float percent) {
-                }
-
-                @Override
-                public void onUpgradeComplete() {
-                    Log.e(TAG, "onUpgradeComplete");
-                    ActivityOnCreate(extras);
-                }
-
-                @Override
-                public void onUpgradeError(Throwable throwable) {
-                    Log.e(TAG, "onUpgradeError: " + throwable.getMessage());
-                    ActivityOnCreate(extras);
-                }
-            });
-
-            try {
-                // 添加webview
-                UpgradePackageSource upgradeSource = new UpgradePackageSource(
-                        getApplicationContext(),
-                        "com.android.chrome");
-                String SystemWebViewPackageName = WebViewUpgrade.getSystemWebViewPackageName();
-                // 如果webview就是chrome
-                if ("com.android.chrome".equals(SystemWebViewPackageName)) {
-                    ActivityOnCreate(extras);
-                    return;
-                }
-                PackageInfo upgradePackageInfo = getPackageManager().getPackageInfo(upgradeSource.getPackageName(), 0);
-                if (upgradePackageInfo != null) {
-                    // googleWebview应当等同于chrome
-                    if ("com.google.android.webview".equals(SystemWebViewPackageName)) {
-                        SystemWebViewPackageName = "com.android.chrome";
-                    }
-                    if (SystemWebViewPackageName.equals(upgradeSource.getPackageName())
-                            && VersionUtils.compareVersion(WebViewUpgrade.getSystemWebViewPackageVersion(),
-                            upgradePackageInfo.versionName) >= 0) {
-                        ActivityOnCreate(extras);
-                        return;
-                    }
-                    WebViewUpgrade.upgrade(upgradeSource);
-                } else {
-                    ActivityOnCreate(extras);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, String.valueOf(e));
-                ActivityOnCreate(extras);
-            }
-        }
     }
 }

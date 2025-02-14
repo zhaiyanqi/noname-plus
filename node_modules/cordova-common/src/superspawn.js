@@ -18,8 +18,7 @@
 */
 
 const crossSpawn = require('cross-spawn');
-const fs = require('fs-extra');
-const extend = require('lodash.assign');
+const fs = require('node:fs');
 const Q = require('q');
 const events = require('./events');
 const iswin32 = process.platform === 'win32';
@@ -73,7 +72,7 @@ exports.spawn = (cmd, args, opts) => {
     }
 
     if (opts.env) {
-        spawnOpts.env = extend(extend({}, process.env), opts.env);
+        spawnOpts.env = Object.assign({}, process.env, opts.env);
     }
 
     if (opts.chmod && !iswin32) {

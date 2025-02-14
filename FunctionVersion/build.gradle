@@ -64,4 +64,6 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.3.1'
     implementation 'com.github.li-xiaojun:XPopup:2.7.5'
     implementation 'com.guolindev.permissionx:permissionx:1.7.1'
+
+    implementation project(":NonameCore")
 }

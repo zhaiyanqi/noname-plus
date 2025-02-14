@@ -1,9 +1,11 @@
 Android Versions
 ================
 
-A node module to get Android versions by API level, NDK level, semantic version, or version name.
+A node module to get Android versions by API level, semantic version, or version name.
 
-Versions are referenced from [source.android.com/source/build-numbers.html](https://source.android.com/source/build-numbers.html#platform-code-names-versions-api-levels-and-ndk-releases). The version for "Current Development Build" (`"CUR_DEVELOPMENT"`) is not included in the list of `VERSIONS`.
+Versions are referenced from [source.android.com/docs/setup/reference/build-numbers](https://source.android.com/docs/setup/reference/build-numbers#platform-code-names-versions-api-levels-and-ndk-releases). The version for "Current Development Build" (`"CUR_DEVELOPMENT"`) is not included in the list of `VERSIONS`.
+
+Release dates are referenced from [https://en.wikipedia.org/wiki/Android_version_history](https://en.wikipedia.org/wiki/Android_version_history).
 
 [![NPM version][npm-image]][npm-url]
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/dvoiss/android-versions/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/dvoiss/android-versions/tree/master)
@@ -29,10 +31,11 @@ const android = require('android-versions')
 ```
 
 #### Get by API level:
+
 ```javascript
 console.log(android.get(23))
 
-=> { api: 23, ndk: 8, semver: "6.0", name: "Marshmallow", versionCode: "M" }
+=> { api: 23, semver: "6.0", name: "Marshmallow", versionCode: "M" }
 ```
 
 #### Get by version:
@@ -40,14 +43,14 @@ console.log(android.get(23))
 ```javascript
 console.log(android.get("2.3.3"))
 
-=> { api: 10, ndk: 5, semver: "2.3.3", name: "Gingerbread", versionCode: "GINGERBREAD_MR1" }
+=> { api: 10, semver: "2.3.3", name: "Gingerbread", versionCode: "GINGERBREAD_MR1" }
 ```
 
 #### Get all by predicate:
 
 ```
 android.getAll((version) => {
-  return version.ndk > 5 && version.api < 15
+  return version.api >= 12 && version.api < 15
 }).map((version) => version.versionCode)
 
 => [ "HONEYCOMB_MR1", "HONEYCOMB_MR2", "ICE_CREAM_SANDWICH" ]
@@ -58,7 +61,7 @@ android.getAll((version) => {
 ```
 android.LOLLIPOP
 
-=> { api: 21, ndk: 8, semver: "5.0", name: "Lollipop", versionCode: "LOLLIPOP" }
+=> { api: 21, semver: "5.0", name: "Lollipop", versionCode: "LOLLIPOP" }
 ```
 
 #### Access the complete reference of Android versions with all info:
@@ -67,9 +70,9 @@ android.LOLLIPOP
 android.VERSIONS
 
 => {
-  BASE:    { api: 1,  ndk: 0, semver: "1.0", name: "(no code name)", versionCode: "BASE" },
+  BASE:    { api: 1,  semver: "1.0", name: "(no code name)", versionCode: "BASE", releaseDate: "23 Sep 2008" },
   ...
-  N:       { api: 24, ndk: 8, semver: "7.0", name: "Nougat",         versionCode: "N" }
+  N:       { api: 24, semver: "7.0", name: "Nougat",         versionCode: "N",    releaseDate: "22 Aug 2016" }
   ...
 }
 ```

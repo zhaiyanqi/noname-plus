@@ -17,8 +17,8 @@
     under the License.
 */
 
-const path = require('path');
-const fs = require('fs-extra');
+const path = require('node:path');
+const fs = require('node:fs');
 const { parseElementtreeSync } = require('../util/xml-helpers');
 const CordovaError = require('../CordovaError');
 

@@ -17,8 +17,8 @@
        under the License.
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const ActionStack = require('./ActionStack');
 const PlatformJson = require('./PlatformJson');
@@ -128,11 +128,11 @@ class PluginManager {
                 this.munger.save_all();
 
                 const metadata = this.munger.platformJson.generateMetadata();
-                fs.writeFileSync(path.join(this.locations.www, 'cordova_plugins.js'), metadata, 'utf-8');
+                fs.writeFileSync(path.join(this.locations.www, 'cordova_plugins.js'), metadata, 'utf8');
 
                 // CB-11022 save plugin metadata to both www and platform_www if options.usePlatformWww is specified
                 if (options.usePlatformWww) {
-                    fs.writeFileSync(path.join(this.locations.platformWww, 'cordova_plugins.js'), metadata, 'utf-8');
+                    fs.writeFileSync(path.join(this.locations.platformWww, 'cordova_plugins.js'), metadata, 'utf8');
                 }
             });
     }

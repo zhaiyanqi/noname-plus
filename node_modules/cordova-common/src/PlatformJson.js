@@ -14,9 +14,10 @@
  *
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const endent = require('endent').default;
+const stripBom = require('strip-bom');
 const mungeutil = require('./ConfigChanges/munge-util');
 
 class PlatformJson {
@@ -28,15 +29,19 @@ class PlatformJson {
 
     static load (plugins_dir, platform) {
         const filePath = path.join(plugins_dir, `${platform}.json`);
-        const root = fs.existsSync(filePath)
-            ? fs.readJsonSync(filePath)
-            : null;
+        let root = null;
+        if (fs.existsSync(filePath)) {
+            const jsonStr = fs.readFileSync(filePath, 'utf8');
+            root = JSON.parse(stripBom(jsonStr));
+        }
 
         return new PlatformJson(filePath, platform, root);
     }
 
     save () {
-        fs.outputJsonSync(this.filePath, this.root, { spaces: 2 });
+        const jsonStr = JSON.stringify(this.root, null, 2);
+        fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
+        fs.writeFileSync(this.filePath, `${jsonStr}\n`, 'utf8');
     }
 
     /**
@@ -189,7 +194,8 @@ class PlatformJson {
      * @return {PlatformJson} PlatformJson instance
      */
     generateAndSaveMetadata (destination) {
-        fs.outputFileSync(destination, this.generateMetadata());
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+        fs.writeFileSync(destination, this.generateMetadata(), 'utf8');
 
         return this;
     }
