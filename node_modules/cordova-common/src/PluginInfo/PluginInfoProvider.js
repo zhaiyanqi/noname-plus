@@ -17,11 +17,11 @@
     under the License.
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const PluginInfo = require('./PluginInfo');
 const events = require('../events');
-const glob = require('glob');
+const fastGlob = require('fast-glob');
 
 class PluginInfoProvider {
     constructor () {
@@ -67,9 +67,10 @@ function getAllHelper (absPath, provider) {
     }
 
     // Match normal and scoped plugins
-    const pluginXmlPaths = glob.sync('{,@*/}*/plugin.xml', {
+    const pluginXmlPaths = fastGlob.sync('{,@*/}*/plugin.xml', {
+        fs, // we pass in fs here, to be able to mock it in our tests
         cwd: absPath,
-        nodir: true,
+        onlyFiles: true,
         absolute: true
     }).map(path.normalize);
 

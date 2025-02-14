@@ -20,6 +20,27 @@
 -->
 # cordova-common Release Notes
 
+### 5.0.1 (Jan 28, 2025)
+
+**Chores:**
+
+* [GH-222](https://github.com/apache/cordova-common/pull/222) chore: bump npm dependencies to current minor revisions
+* [GH-217](https://github.com/apache/cordova-common/pull/217) chore(deps): bump cross-spawn from 7.0.3 to 7.0.6
+* [GH-218](https://github.com/apache/cordova-common/pull/218) chore(ci): Fix dependabot PR failures
+* [GH-214](https://github.com/apache/cordova-common/pull/214) chore(deps): bump micromatch from 4.0.5 to 4.0.8
+* [GH-211](https://github.com/apache/cordova-common/pull/211) chore: Minor test fixes
+* [GH-210](https://github.com/apache/cordova-common/pull/210) chore: Don't list dev dependencies in NOTICE
+* [GH-208](https://github.com/apache/cordova-common/pull/208) chore(deps): bump braces from 3.0.2 to 3.0.3
+* [GH-207](https://github.com/apache/cordova-common/pull/207) chore(ci): Add NodeJS 22 to CI matrix
+* [GH-206](https://github.com/apache/cordova-common/pull/206) chore(ci): Set up CodeQL analysis
+* [GH-203](https://github.com/apache/cordova-common/pull/203) chore(deps): Modernize some dependencies
+* [GH-204](https://github.com/apache/cordova-common/pull/204) chore: fix typo in license checker's ignored-packages config
+
+**CI:**
+
+* [GH-205](https://github.com/apache/cordova-common/pull/205) ci: update codecov@v4 w/ token
+* [GH-202](https://github.com/apache/cordova-common/pull/202) ci: add release audit workflow
+
 ### 5.0.0 (Feb 28, 2023)
 
 * [GH-186](https://github.com/apache/cordova-common/pull/186) feat!: bump package requirement node>=16

@@ -17,8 +17,8 @@
     under the License.
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 function isRootDir (dir) {
     if (fs.existsSync(path.join(dir, 'www'))) {

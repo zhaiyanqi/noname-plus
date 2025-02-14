@@ -51,6 +51,8 @@ dependencies {
     implementation 'com.tencent:mmkv:1.2.11'
     implementation 'org.greenrobot:eventbus:3.3.1'
 
+    implementation project(":NonameCore")
+
 }
 
 task clearJar(type: Delete) {

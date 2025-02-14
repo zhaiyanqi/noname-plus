@@ -27,14 +27,13 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
-import android.util.Log;
+import android.util.Base64;
 import android.webkit.ClientCertRequest;
 import android.webkit.HttpAuthHandler;
 import android.webkit.MimeTypeMap;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.ServiceWorkerClient;
 import android.webkit.ServiceWorkerController;
-import android.webkit.ServiceWorkerWebSettings;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -49,7 +48,9 @@ import org.apache.cordova.CordovaPreferences;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
+import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,6 +58,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -64,6 +66,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -130,7 +133,7 @@ public class SystemWebViewClient extends WebViewClient {
                 String[] newSplit = Arrays.copyOfRange(split, 0, split.length - 1);
                 List<String> list = Arrays.asList(assetManager.list(String.join("/", newSplit)));
                 Long lastModified = null;
-                if (!path.startsWith("game/") && list.contains(split[split.length - 1])) {
+                if (list.contains(split[split.length - 1])) {
                     is = assetManager.open("www/" + path, AssetManager.ACCESS_STREAMING);
                 } else {
                     String GameRootPath = MMKV.defaultMMKV().getString(FileConstant.GAME_PATH_KEY, null);
@@ -156,6 +159,7 @@ public class SystemWebViewClient extends WebViewClient {
                         mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
                     }
                 }
+
                 WebResourceResponse response = new WebResourceResponse(mimeType, null, is);
                 if (lastModified != null) {
                     Locale aLocale = Locale.US;
@@ -177,19 +181,18 @@ public class SystemWebViewClient extends WebViewClient {
         });
 
         this.assetLoader = assetLoaderBuilder.build();
+        boolean setAsServiceWorkerClient = parentEngine.preferences.getBoolean("ResolveServiceWorkerRequests", true);
+        ServiceWorkerController controller = null;
 
-        // 启用ServiceWorker
-        ServiceWorkerController swController = ServiceWorkerController.getInstance();
-        swController.setServiceWorkerClient(new ServiceWorkerClient() {
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
-                // Capture request here and generate response or allow pass-through
-                return assetLoader.shouldInterceptRequest(request.getUrl());
-            }
-        });
-        ServiceWorkerWebSettings serviceWorkerWebSettings = swController.getServiceWorkerWebSettings();
-        serviceWorkerWebSettings.setAllowContentAccess(true);
-        serviceWorkerWebSettings.setAllowFileAccess(true);
+        if (setAsServiceWorkerClient) {
+            controller = ServiceWorkerController.getInstance();
+            controller.setServiceWorkerClient(new ServiceWorkerClient(){
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
+                    return assetLoader.shouldInterceptRequest(request.getUrl());
+                }
+            });
+        }
     }
 
     /**
@@ -498,7 +501,55 @@ public class SystemWebViewClient extends WebViewClient {
         String url = request.getUrl().toString();
         String method = request.getMethod();
         Map<String, String> headers = request.getRequestHeaders();
-        Log.e("Request", method + "  " + url + "  " + headers);
+        LOG.e("Request", method + "  " + url + "  " + headers);
+        if (url.startsWith("http://localhost:9222/remote/debug/image_base64")){
+            try {
+                Map<String, String> query_pairs = new LinkedHashMap<>();
+                String query = new URL(url).getQuery();
+                if (query != null) {
+                    for (String param : query.split("&")) {
+                        String[] pair = param.split("=");
+                        if (pair.length > 1) {
+                            query_pairs.put(pair[0], URLDecoder.decode(pair[1], "UTF-8"));
+                        } else {
+                            query_pairs.put(pair[0], "");
+                        }
+                    }
+                }
+                String imgUrl = query_pairs.get("url");
+                if (imgUrl != null) {
+                    if (imgUrl.startsWith("http://localhost/") || imgUrl.startsWith("https://localhost/")) {
+                        File imageFile = new File(
+                                this.parentEngine.webView.getContext().getExternalFilesDir(null).getParentFile(),
+                                imgUrl.substring(17)
+                        );
+                        LOG.e("Request", imageFile.getAbsolutePath());
+                        InputStream inputStream = new FileInputStream(imageFile);
+                        byte[] buffer = new byte[(int) imageFile.length()];
+                        inputStream.read(buffer);
+                        inputStream.close();
+                        String base64 =  Base64.encodeToString(buffer, Base64.DEFAULT);
+                        LOG.e("Request", base64);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("base64", base64);
+                        String jsonString = jsonObject.toString();
+                        ByteArrayInputStream bais = new ByteArrayInputStream(jsonString.getBytes());
+                        WebResourceResponse response = new WebResourceResponse(
+                                "application/json",
+                                "UTF-8",
+                                bais
+                        );
+                        Map<String, String> responseHeaders = new HashMap<>();
+                        if (response.getResponseHeaders() != null) {
+                            responseHeaders.putAll(response.getResponseHeaders());
+                        }
+                        responseHeaders.put("Access-Control-Allow-Origin", "*");
+                        response.setResponseHeaders(responseHeaders);
+                        return response;
+                    }
+                }
+            } catch (Exception e) {}
+        }
         CordovaPreferences prefs = parentEngine.preferences;
         String scheme = prefs.getString("scheme", "https").toLowerCase();
         String hostname = prefs.getString("hostname", "localhost").toLowerCase();
@@ -536,8 +587,8 @@ public class SystemWebViewClient extends WebViewClient {
                 return request(request, httpConnect);
             }
         } catch (Exception e) {
-            Log.e(TAG, "出现异常，路径为：" + url);
-            Log.e(TAG, e.getMessage());
+            LOG.e(TAG, "出现异常，路径为：" + url);
+            LOG.e(TAG, e.getMessage());
         }
         return null;
     }
@@ -551,7 +602,7 @@ public class SystemWebViewClient extends WebViewClient {
         httpConnect.setUseCaches(false);
         if (request.getRequestHeaders() != null) for (Map.Entry<String, String> item : request.getRequestHeaders().entrySet()) {
             //设置header
-            Log.e(TAG, "request添加header: " + item.getKey() + " : " + item.getValue());
+            LOG.e(TAG, "request添加header: " + item.getKey() + " : " + item.getValue());
             httpConnect.setRequestProperty(item.getKey(), item.getValue());
         }
         if (httpConnect.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -576,7 +627,7 @@ public class SystemWebViewClient extends WebViewClient {
                 StringBuilder headerValueBuilder = new StringBuilder();
 
                 if (!entry.getValue().isEmpty()) {
-                    Log.e(TAG, "httpsConnect返回header: " + entry.getKey() + " : " + entry.getValue());
+                    LOG.e(TAG, "httpsConnect返回header: " + entry.getKey() + " : " + entry.getValue());
                     boolean isCookieHeader = "Cookie".equalsIgnoreCase(headerName);
 
                     for (String value : entry.getValue()) {
@@ -619,7 +670,7 @@ public class SystemWebViewClient extends WebViewClient {
         httpConnect.setUseCaches(false);
         if (request.getRequestHeaders() != null) for (Map.Entry<String, String> item : request.getRequestHeaders().entrySet()) {
             //设置header
-            Log.e(TAG, "request添加header: " + item.getKey() + " : " + item.getValue());
+            LOG.e(TAG, "request添加header: " + item.getKey() + " : " + item.getValue());
             httpConnect.setRequestProperty(item.getKey(), item.getValue());
         }
         if (httpConnect.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -644,7 +695,7 @@ public class SystemWebViewClient extends WebViewClient {
                 StringBuilder headerValueBuilder = new StringBuilder();
 
                 if (!entry.getValue().isEmpty()) {
-                    Log.e(TAG, "httpsConnect返回header: " + entry.getKey() + " : " + entry.getValue());
+                    LOG.e(TAG, "httpsConnect返回header: " + entry.getKey() + " : " + entry.getValue());
                     boolean isCookieHeader = "Cookie".equalsIgnoreCase(headerName);
 
                     for (String value : entry.getValue()) {

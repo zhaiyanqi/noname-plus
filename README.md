@@ -1,4 +1,4 @@
-> [无名杀](https://github.com/libccy/noname)是优秀的`HTML单机三国杀`，游戏实现方式本质上来说是一个 网页+“浏览器”，通过能够在不同平台的浏览器运行无名杀网页，从而组成了各个平台的版本，版本的区别仅仅体现在浏览器的差异。 无名杀有强大的DIY功能，可以与网友讨论交流，设计自己喜欢的武将，目前支持联机功能。有着自己原创的模式，以及三国杀的众多玩法。
+> [无名杀](https://github.com/libnoname/noname)是优秀的`HTML单机三国杀`，游戏实现方式本质上来说是一个 网页+“浏览器”，通过能够在不同平台的浏览器运行无名杀网页，从而组成了各个平台的版本，版本的区别仅仅体现在浏览器的差异。 无名杀有强大的DIY功能，可以与网友讨论交流，设计自己喜欢的武将，目前支持联机功能。有着自己原创的模式，以及三国杀的众多玩法。
 
 无名杀增强版是在其基础上开发的`android 应用程序`。
 ## 关于
@@ -26,6 +26,15 @@
 
 ## 更新日志
 
+#### 版本1.3.2
+将公共的Api和升级Webview内核操作封装到NoameCore模块中，使所有App可以共用相同功能
+
+#### 版本1.3.1
+更新日期：2024年10月27日
+1.取消了对file协议的兼容（其他APP也将陆续取消对file协议的兼容）
+2.添加了截图接口window.NonameAndroidBridge.captureScreen(文件名)，会把截图保存到DCIM/应用包名文件夹内(本应用包名为com.widget.noname.cola)
+3.补充缺失的跨域配置
+
 #### 版本1.3.0
 更新日期：2024年6月7日
 更新内容：增加对https版本的支持，修复解压zip的中文乱码，可以使用chrome作为本应用的webview实现
@@ -33,6 +42,9 @@
 #### 版本1.2.0
 更新日期：2021年某月某日
 更新内容：忘了
+
+# 克隆本项目
+git clone --recursive https://github.com/zhaiyanqi/noname-plus.git
 
 ## 创建安卓项目
 先按教程全局安装cordova环境(本项目用的是cordova12)
@@ -46,7 +58,7 @@ npm i
 
 创建安卓项目: 
 ```
-cordova platform add android@12.0.1
+cordova platform add android@13
 ```
 
 在platforms\android\settings.gradle`改为`:
@@ -62,6 +74,7 @@ include ':FunctionVersion'
 include ':FunctionAbout'
 include ':FunctionGameShell'
 include ':FunctionLibrary'
+include ':NonameCore'
 ```
 
 在platforms\android\repositories.gradle
@@ -97,13 +110,17 @@ sourceSets {
 }
 ```
 
-在sourceSets块下面添加:
+在platforms\android\app\build.gradle的android块中修改buildFeatures块为:
 ```gradle
 buildFeatures {
+    buildConfig true
     //noinspection DataBindingWithoutKapt
     dataBinding true
 }
+```
 
+在sourceSets块下面添加:
+```gradle
 android.applicationVariants.all {
     variant ->
         variant.outputs.all {
@@ -122,19 +139,10 @@ aaptOptions {
 在platforms\android\app\build.gradle的dependencies`改为`:
 ```gradle
 dependencies {
-    implementation fileTree(dir: 'libs', include: '*.jar')
-	implementation fileTree(dir: 'src/main/libs', include: '*.jar')
+    // .......
+    // SUB-PROJECT DEPENDENCIES END
 
-    implementation "androidx.appcompat:appcompat:${cordovaConfig.ANDROIDX_APP_COMPAT_VERSION}"
-    implementation "androidx.core:core-splashscreen:${cordovaConfig.ANDROIDX_CORE_SPLASHSCREEN_VERSION}"
-
-    if (cordovaConfig.IS_GRADLE_PLUGIN_KOTLIN_ENABLED) {
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${cordovaConfig.KOTLIN_VERSION}"
-    }
-
-    // SUB-PROJECT DEPENDENCIES START
-    implementation(project(path: ":CordovaLib"))
-    implementation "androidx.webkit:webkit:1.4.0"
+    implementation fileTree(dir: 'src/main/libs', include: '*.jar')
     implementation project(":Common")
     implementation project(":FunctionLibrary")
     implementation project(':FunctionServer')
@@ -142,11 +150,10 @@ dependencies {
     implementation project(":FunctionVersion")
     implementation project(":FunctionGameShell")
     implementation project(":FunctionAbout")
-
-	implementation 'io.github.jonanorman.android.webviewup:core:0.1.0'
+    implementation project(":NonameCore")
+    
 	implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-    // SUB-PROJECT DEPENDENCIES END
 
     implementation 'com.tencent:mmkv:1.2.11'
     implementation "androidx.viewpager2:viewpager2:1.0.0"

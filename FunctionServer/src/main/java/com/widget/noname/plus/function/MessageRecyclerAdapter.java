@@ -32,7 +32,7 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.message_text_view_layout, viewGroup, false);
+                .inflate(com.widget.noname.cola.library.R.layout.message_text_view_layout, viewGroup, false);
         return new MessageHolder(view);
     }
 
@@ -88,8 +88,8 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         public MessageHolder(@NonNull View itemView) {
             super(itemView);
 
-            textView = itemView.findViewById(R.id.message_text_view);
-            dataTextView = itemView.findViewById(R.id.message_date_text_view);
+            textView = itemView.findViewById(com.widget.noname.cola.library.R.id.message_text_view);
+            dataTextView = itemView.findViewById(com.widget.noname.cola.library.R.id.message_date_text_view);
         }
 
         public TextView getTextView() {

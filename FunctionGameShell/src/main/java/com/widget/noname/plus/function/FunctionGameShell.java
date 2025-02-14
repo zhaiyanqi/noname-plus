@@ -46,7 +46,7 @@ public class FunctionGameShell extends BaseFunction {
             intent.setComponent(new ComponentName("com.widget.noname.cola",
                     "com.widget.noname.cola.MainActivity"));
             getContext().startActivity(intent);
-            ((Activity) getContext()).overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+            ((Activity) getContext()).overridePendingTransition(com.widget.noname.cola.library.R.anim.zoom_in, com.widget.noname.cola.library.R.anim.zoom_out);
         } catch (Exception e) {
             Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }

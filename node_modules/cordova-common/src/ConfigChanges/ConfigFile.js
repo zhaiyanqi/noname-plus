@@ -14,8 +14,8 @@
  *
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const readChunk = require('read-chunk');
 
 // Use delay loading to ensure plist and other node modules to not get loaded
@@ -23,7 +23,7 @@ const readChunk = require('read-chunk');
 const modules = {
     get bplist () { return require('bplist-parser'); },
     get et () { return require('elementtree'); },
-    get glob () { return require('glob'); },
+    get glob () { return require('fast-glob'); },
     get plist () { return require('plist'); },
     get plist_helpers () { return require('../util/plist-helpers'); },
     get xml_helpers () { return require('../util/xml-helpers'); }
@@ -85,7 +85,7 @@ class ConfigFile {
 
     save () {
         if (this.type === 'xml') {
-            fs.writeFileSync(this.filepath, this.data.write({ indent: 4 }), 'utf-8');
+            fs.writeFileSync(this.filepath, this.data.write({ indent: 4 }), 'utf8');
         } else {
             // plist
             const regExp = /<string>[ \t\r\n]+?<\/string>/g;
@@ -167,8 +167,11 @@ function resolveConfigFilePath (project_dir, platform, file) {
 
     if (file.includes('*')) {
         // handle wildcards in targets using glob.
-        matches = modules.glob.sync(path.join(project_dir, '**', file))
-            .map(p => path.normalize(p));
+        matches = modules.glob.sync(`**/${file}`, {
+            fs,
+            cwd: project_dir,
+            absolute: true
+        }).map(path.normalize);
 
         if (matches.length) filepath = matches[0];
 
@@ -217,7 +220,11 @@ function resolveConfigFilePath (project_dir, platform, file) {
                 'config.xml'
             );
         } else {
-            matches = modules.glob.sync(path.join(project_dir, '**', 'config.xml'));
+            matches = modules.glob.sync('**/config.xml', {
+                fs,
+                cwd: project_dir,
+                absolute: true
+            }).map(path.normalize);
             if (matches.length) filepath = matches[0];
         }
 
@@ -231,7 +238,7 @@ function resolveConfigFilePath (project_dir, platform, file) {
 // Find out the real name of an iOS or OSX project
 // TODO: glob is slow, need a better way or caching, or avoid using more than once.
 function getIOSProjectname (project_dir) {
-    const matches = modules.glob.sync('*.xcodeproj', { cwd: project_dir });
+    const matches = modules.glob.sync('*.xcodeproj', { cwd: project_dir, onlyDirectories: true });
 
     if (matches.length !== 1) {
         const msg = matches.length === 0

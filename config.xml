@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.widget.noname.cola" version="1.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+<widget id="com.widget.noname.cola" version="1.3.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <name>noname</name>
     <description>Sample Apache Cordova App</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
@@ -21,7 +21,7 @@
             <manifest xmlns:tools="http://schemas.android.com/tools" />
         </edit-config>
         <!-- 设置版本代码，低版本不能覆盖高版本的安卓 -->
-        <preference name="android-versionCode" value="10300" />
+        <preference name="android-versionCode" value="10320" />
         <!-- 设置usesCleartextTraffic -->
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application 
@@ -61,17 +61,16 @@
         <preference name="StatusBarOverlaysWebView" value="true" />
         <!-- file插件的配置，兼容以前的设置 -->
         <preference name="AndroidPersistentFileLocation" value="Compatibility" />
-        <!-- 默认以file协议启动webview -->
-        <!-- 但是我魔改了cordova源码，这个值没多大意义了 -->
-        <preference name="AndroidInsecureFileModeEnabled" value="true" />
+        <!-- 是否默认以file协议启动webview -->
+        <preference name="AndroidInsecureFileModeEnabled" value="false" />
         <!-- 启动模式 -->
         <preference name="AndroidLaunchMode" value="singleTask" />
-        <!-- targetSdk改为31 -->
-        <preference name="android-targetSdkVersion" value="31" />
+        <!-- 发应用时所针对的最高Android版本。它告知Android系统你的应用已经为该版本进行了优化，并且了解该版本中的所有行为变更。 -->
+        <preference name="android-targetSdkVersion" value="34" />
         <!-- 编译的时候采用该api的规范进行代码检查和警告，但是并不会编译进apk中 -->
-        <preference name="android-compileSdkVersion" value="34" />
+        <preference name="android-compileSdkVersion" value="35" />
         <!-- android构建工具的版本 -->
-        <preference name="android-buildToolsVersion" value="34.0.0" />
+        <preference name="android-buildToolsVersion" value="35.0.0" />
         <!-- 配置Android Gradle Plugin Version -->
         <!-- <preference name="AndroidGradlePluginVersion" value="8.3.1" /> -->
         <!-- 配置Gradle Version -->
@@ -89,13 +88,10 @@
                 android:resizeable="true"
                 android:smallScreens="true"
                 android:xlargeScreens="true" />
-            <queries>
-                <package android:name="com.android.chrome" />
-            </queries>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:ignore="ManifestOrder" />
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
             <uses-permission android:name="android.permission.WAKE_LOCK" />
-            <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+            <uses-permission android:name="android.permission.VIBRATE" />
             <!-- 安卓13(准确来说是11)以下的读写权限 -->
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" tools:ignore="ScopedStorage" />
             <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />

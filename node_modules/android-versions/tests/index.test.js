@@ -8,12 +8,12 @@ test('get specific version by API level', (t) => {
   t.equal(android.get(24).name, "Nougat")
 })
 
-test('getAll versions by API level', (t) => {
+test('get all versions by API level', (t) => {
   t.plan(1)
   t.equal(android.getAll(24)[0].name, "Nougat")
 })
 
-test('get specific version by predicate', (t) => {
+test('get first specific version by predicate', (t) => {
   t.plan(2)
 
   let actual = android.get((version) => {
@@ -22,12 +22,12 @@ test('get specific version by predicate', (t) => {
   t.equal(actual.name, "Donut")
 
   actual = android.get((version) => {
-    return version.ndk > 5 && version.api < 15
+    return version.api >= 12 && version.api < 15
   })
   t.equal(actual.versionCode, "HONEYCOMB_MR1")
 })
 
-test('getAll versions by predicate', (t) => {
+test('get all versions by predicate', (t) => {
   t.plan(3)
 
   let actual = android.getAll((version) => {
@@ -36,7 +36,7 @@ test('getAll versions by predicate', (t) => {
   t.deepEqual(actual, ["Donut", "Honeycomb", "Honeycomb", "Honeycomb"])
 
   actual = android.getAll((version) => {
-    return version.ndk > 5 && version.api < 15
+    return version.api >= 12 && version.api < 15
   }).map((version) => version.versionCode)
   t.deepEqual(actual, ["HONEYCOMB_MR1", "HONEYCOMB_MR2", "ICE_CREAM_SANDWICH"])
 
