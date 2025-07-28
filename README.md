@@ -4,6 +4,8 @@
 ## 关于
 程序开源代码：[https://github.com/zhaiyanqi/noname-plus](https://github.com/zhaiyanqi/noname-plus)，有任何程序上的问题可以到github上提 [issues](https://github.com/zhaiyanqi/noname-plus/issues) 给我反馈。
 
+本项目将要与[noname-shijian-android](https://github.com/nonameShijian/noname-shijian-android)进行合并，并且重新创建项目，所以本项目将会进入停止更新的状态。仅当遇到恶性bug时会进行修复
+
 ## 功能说明
 
 #### 共存
