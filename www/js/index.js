@@ -1,45 +1,45 @@
 'use strict';
-(function () {
-    var preapp = {
-        url: "",
-        initialize: function () {
-            this.initJavaArgs();
-            this.start();
-        },
-        initJavaArgs: function () {
-            var url =  window.jsBridge.getAssetPath();
-            console.log("jsBridge.getAssetPath: " + url);
+(async () => {
+    if (!localStorage.getItem('noname_freeTips')) {
+        alert("【无名杀】属于个人开发软件且【完全免费】，如非法倒卖用于牟利将承担法律责任 开发团队将追究到底");
+        localStorage.setItem('noname_freeTips', true);
+    }
+    let url = window.jsBridge.getAssetPath();
 
-            if (localStorage.getItem("noname_inited") != url) {
-                localStorage.setItem('noname_inited', url);
-            }
+    if (!url) return;
 
-            if (!location.protocol.startsWith('http')) {
-                this.url = url;
-            }
-        },
-        start: function () {
-            var url = this.url;
-            var loadFailed = function () {
-                window.location.reload();
-            }
-            var load = function (src, onload, onerror) {
-                console.log("load, src: " + src);
-                var script = document.createElement('script');
-                script.src = url + 'game/' + src + '.js';
-                script.onload = onload;
-                script.onerror = onerror;
-                document.head.appendChild(script);
-            }
-            load('update', function () {
-                load('config', function () {
-                    load('package', function () {
-                        load('game', null, loadFailed);
-                    }, loadFailed);
-                }, loadFailed);
-            }, loadFailed);
-        }
+    if (localStorage.getItem("noname_inited") != url) {
+        localStorage.setItem('noname_inited', url);
+    }
+
+    if (url === 'nodejs' || location.protocol.startsWith('http')) url = '';
+
+    const loadFailed = () => {
+        localStorage.removeItem('noname_inited');
+        localStorage.removeItem('noname_freeTips');
+        window.location.reload();
     };
 
-    preapp.initialize();
-}());
+    const load = src => new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `${url}game/${src}.js`;
+        script.onload = resolve;
+        script.onerror = (e) => {
+            alert('在载入' + 'game/' + src + '.js时发生错误');
+            reject(e);
+        };
+        document.head.appendChild(script);
+    });
+
+    try {
+        await Promise.all([
+            load('importmap'),
+            load('update'),
+            load('config'),
+            load('package')
+        ]);
+        await load('game');
+    } catch (e) {
+        loadFailed();
+    }
+})();
