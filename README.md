@@ -28,14 +28,22 @@
 
 ## 更新日志
 
+#### 版本1.3.3
+更新日期：2025年7月30日
+1. 修改了一个联机地址
+2. 修复安卓8以下联机设置服务器闪退的bug
+3. 修复联机服务器传输数据的bug
+4. www/js/index.js中新增了加载game/importmap.js，旧版本需要使用新app的请在对应位置创建同名空文件
+5. 本项目将要与[noname-shijian-android](https://github.com/nonameShijian/noname-shijian-android)进行合并，并且重新创建项目，所以本项目将会进入停止更新的状态。仅当遇到恶性bug时会进行修复
+
 #### 版本1.3.2
 将公共的Api和升级Webview内核操作封装到NoameCore模块中，使所有App可以共用相同功能
 
 #### 版本1.3.1
 更新日期：2024年10月27日
-1.取消了对file协议的兼容（其他APP也将陆续取消对file协议的兼容）
-2.添加了截图接口window.NonameAndroidBridge.captureScreen(文件名)，会把截图保存到DCIM/应用包名文件夹内(本应用包名为com.widget.noname.cola)
-3.补充缺失的跨域配置
+1. 取消了对file协议的兼容（其他APP也将陆续取消对file协议的兼容）
+2. 添加了截图接口window.NonameAndroidBridge.captureScreen(文件名)，会把截图保存到DCIM/应用包名文件夹内(本应用包名为com.widget.noname.cola)
+3. 补充缺失的跨域配置
 
 #### 版本1.3.0
 更新日期：2024年6月7日
