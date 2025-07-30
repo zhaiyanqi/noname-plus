@@ -3,6 +3,7 @@ package com.widget.noname.plus.function;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -130,9 +131,9 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
         adapter.addMessage("点击启动按钮创建服务器, 也可以直接点击下方ip设置并开始游戏⬇️");
         adapter.addMessage("可用服务器（下列地址点击可弹出菜单）");
         adapter.addMessage(new MessageData("159.75.51.253", MessageData.TYPE_IP));
-        adapter.addMessage(new MessageData("47.99.105.222", MessageData.TYPE_IP));
+        adapter.addMessage(new MessageData("43.138.118.130", MessageData.TYPE_IP));
 
-        ThreadManager.getInstance().execute(() -> {
+        Runnable runnable = () -> {
             ClipboardManager cm = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData primaryClip = cm.getPrimaryClip();
             FragmentActivity activity = (FragmentActivity) getContext();
@@ -163,7 +164,14 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
                     addIpaddrToScreen(array.get(i).toString());
                 }
             }
-        });
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ThreadManager.getInstance().execute(runnable);
+        }
+        else {
+            ThreadManager.getInstance().postToMain(runnable);
+        }
     }
 
     private void startLocalServer() {
@@ -309,7 +317,7 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
     }
 
     private void setToClipboard(String string) {
-        ThreadManager.getInstance().execute(() -> {
+        Runnable runnable = () -> {
             ClipboardManager cm = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData mClipData = ClipData.newPlainText("Label", string);
             cm.setPrimaryClip(mClipData);
@@ -326,7 +334,14 @@ public class FunctionServer extends BaseFunction implements View.OnClickListener
                     Toast.makeText(getContext(), "已复制：" + text1, Toast.LENGTH_SHORT).show();
                 });
             }
-        });
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ThreadManager.getInstance().execute(runnable);
+        }
+        else {
+            ThreadManager.getInstance().postToMain(runnable);
+        }
     }
 
     public void setServerStatus(int serverStatus) {

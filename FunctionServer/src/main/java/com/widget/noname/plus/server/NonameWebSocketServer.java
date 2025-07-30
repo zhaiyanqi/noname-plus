@@ -171,7 +171,7 @@ public class NonameWebSocketServer extends WebSocketServer {
     }
 
     public void dispatchMessage(WebSocketClient ws, List<String> msg) {
-        if ((null != msg) && (msg.size() > 1) && SERVER.equals(msg.get(0))) {
+        if ((null != msg) && (msg.size() > 1) && "server".equals(msg.get(0))) {
             String type = msg.get(1);
 
             switch (type) {
